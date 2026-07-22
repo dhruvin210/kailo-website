@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { useCart } from "@/lib/cart";
+import { formatINR } from "@/lib/products";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/cart")({
 
 function Cart() {
   const { detailed, subtotal, update, remove } = useCart();
-  const shipping = subtotal > 100 ? 0 : subtotal > 0 ? 9 : 0;
+  const shipping = subtotal > 5000 ? 0 : subtotal > 0 ? 199 : 0;
 
   return (
     <SiteLayout>
@@ -52,7 +53,7 @@ function Cart() {
                         {product.name}
                       </Link>
                       <p className="text-xs text-muted-foreground">{product.category}</p>
-                      <p className="mt-2 font-semibold">${product.price}</p>
+                      <p className="mt-2 font-semibold">{formatINR(product.price)}</p>
                     </div>
                     <div className="inline-flex items-center rounded-full border border-border">
                       <button onClick={() => update(product.id, quantity - 1)} className="px-3 py-2" aria-label="Decrease">
@@ -78,15 +79,15 @@ function Cart() {
                 <dl className="mt-4 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <dt className="text-muted-foreground">Subtotal</dt>
-                    <dd>${subtotal.toFixed(2)}</dd>
+                    <dd>{formatINR(subtotal)}</dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-muted-foreground">Shipping</dt>
-                    <dd>{shipping === 0 ? "Free" : `$${shipping}`}</dd>
+                    <dd>{shipping === 0 ? "Free" : formatINR(shipping)}</dd>
                   </div>
                   <div className="flex justify-between border-t border-border pt-3 text-base font-semibold">
                     <dt>Total</dt>
-                    <dd>${(subtotal + shipping).toFixed(2)}</dd>
+                    <dd>{formatINR(subtotal + shipping)}</dd>
                   </div>
                 </dl>
                 <input

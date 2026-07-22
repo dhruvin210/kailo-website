@@ -22,6 +22,13 @@ export function Navbar() {
   const { count } = useCart();
   const { location } = useRouterState();
 
+  // On the homepage the navbar floats transparently over the hero image and
+  // only turns solid white once the user scrolls past the top.
+  const overlay = location.pathname === "/" && !scrolled;
+  const iconBtn = overlay
+    ? "text-white hover:bg-white/15"
+    : "text-foreground hover:bg-muted";
+
   const [wishlistCount, setWishlistCount] = useState(0);
 
   useEffect(() => {
@@ -53,14 +60,16 @@ export function Navbar() {
 
   return (
   <header
-    className={`sticky top-0 z-50 w-full bg-white/90 backdrop-blur transition-shadow ${
-      scrolled
-        ? "border-b border-border shadow-sm"
-        : "border-b border-transparent"
+    className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+      overlay
+        ? "border-b border-transparent bg-transparent"
+        : scrolled
+          ? "border-b border-border bg-white/90 shadow-sm backdrop-blur"
+          : "border-b border-transparent bg-white/90 backdrop-blur"
     }`}
   >
     <div className="mx-auto flex h-16 max-w-7xl items-center justify-end px-4 sm:px-6 lg:px-8">
-      <Logo />
+      <Logo light={overlay} />
 
       <nav className="ml-auto hidden items-center gap-8 md:flex">
         {LINKS.map((l) => {
@@ -75,8 +84,12 @@ export function Navbar() {
               to={l.to}
               className={`group relative text-sm transition-colors hover:text-primary ${
                 active
-                  ? "font-semibold text-foreground"
-                  : "font-medium text-muted-foreground"
+                  ? overlay
+                    ? "font-semibold text-white"
+                    : "font-semibold text-foreground"
+                  : overlay
+                    ? "font-medium text-white/80"
+                    : "font-medium text-muted-foreground"
               }`}
             >
               {l.label}
@@ -97,7 +110,7 @@ export function Navbar() {
         <button
           type="button"
           onClick={() => setSearchOpen(true)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
+          className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${iconBtn}`}
         >
           <Search className="h-5 w-5" />
         </button>
@@ -130,7 +143,7 @@ export function Navbar() {
         {/* Wishlist */}
         <Link
           to="/wishlist"
-          className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
+          className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${iconBtn}`}
         >
           <Heart className="h-5 w-5" />
 
@@ -144,7 +157,7 @@ export function Navbar() {
         {/* Cart */}
         <Link
           to="/cart"
-          className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
+          className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${iconBtn}`}
         >
           <ShoppingBag className="h-5 w-5" />
 
@@ -159,7 +172,7 @@ export function Navbar() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted md:hidden"
+          className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors md:hidden ${iconBtn}`}
         >
           {open ? (
             <X className="h-5 w-5" />

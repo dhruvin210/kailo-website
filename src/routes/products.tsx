@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ProductCard } from "@/components/ProductCard";
-import { PRODUCTS, CATEGORIES } from "@/lib/products";
+import { PRODUCTS, CATEGORIES, formatINR } from "@/lib/products";
 import { SlidersHorizontal } from "lucide-react";
 
 export const Route = createFileRoute("/products")({
@@ -23,7 +23,7 @@ type Sort = "newest" | "price-asc" | "price-desc" | "popular";
 
 function Products() {
   const [cat, setCat] = useState<(typeof CATEGORIES)[number]>("All");
-  const [maxPrice, setMaxPrice] = useState(400);
+  const [maxPrice, setMaxPrice] = useState(30000);
   const [sort, setSort] = useState<Sort>("newest");
 
   const items = useMemo(() => {
@@ -70,12 +70,12 @@ function Products() {
               </div>
             </div>
             <div>
-              <div className="mb-3 text-sm font-semibold">Price: up to ${maxPrice}</div>
+              <div className="mb-3 text-sm font-semibold">Price: up to {formatINR(maxPrice)}</div>
               <input
                 type="range"
-                min={20}
-                max={400}
-                step={10}
+                min={1000}
+                max={30000}
+                step={500}
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
                 className="w-full accent-[var(--primary)]"

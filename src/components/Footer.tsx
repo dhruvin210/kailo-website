@@ -6,12 +6,9 @@ export function Footer() {
   return (
     <footer className="bg-[#2EBFC3] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
-
         {/* Logo & Social */}
         <div>
-          <div className="[&_span]:!text-white">
-            <Logo light />
-          </div>
+          <Logo light />
 
           <p className="mt-4 max-w-xs text-sm text-white/90">
             Crafted with finesse, made to move your soul.
@@ -45,10 +42,7 @@ export function Footer() {
               { to: "/account", label: "My Account" },
             ].map((l) => (
               <li key={l.to}>
-                <Link
-                  to={l.to}
-                  className="transition-colors duration-300 hover:text-black"
-                >
+                <Link to={l.to} className="transition-colors duration-300 hover:text-black">
                   {l.label}
                 </Link>
               </li>
@@ -58,9 +52,7 @@ export function Footer() {
 
         {/* Products */}
         <div>
-          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-white">
-            Products
-          </h4>
+          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-white">Products</h4>
 
           <ul className="space-y-3 text-sm">
             {["Cases", "Straps", "Tuners", "Picks", "Cleaning Kits"].map((c) => (
@@ -79,9 +71,7 @@ export function Footer() {
 
         {/* Contact */}
         <div>
-          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-white">
-            Contact
-          </h4>
+          <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-white">Contact</h4>
 
           <ul className="space-y-3 text-sm text-white/90">
             <li>hello@kailo.com</li>

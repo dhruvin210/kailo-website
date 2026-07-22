@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { ChevronRight, Heart, Minus, Plus, ShoppingBag, Star } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ProductCard } from "@/components/ProductCard";
-import { getProduct, PRODUCTS } from "@/lib/products";
+import { formatINR, getProduct, PRODUCTS } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 
 export const Route = createFileRoute("/products/$id")({
@@ -95,7 +95,7 @@ function ProductDetail() {
                 {product.rating} · {product.reviews} reviews
               </span>
             </div>
-            <p className="mt-5 text-3xl font-semibold">${product.price}</p>
+            <p className="mt-5 text-3xl font-semibold">{formatINR(product.price)}</p>
             <p className="mt-5 text-muted-foreground">{product.description}</p>
 
             <div className="mt-8 flex items-center gap-4">

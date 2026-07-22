@@ -3,7 +3,7 @@ import { Heart, ShoppingBag, Star } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import type { Product } from "@/lib/products";
+import { formatINR, type Product } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 
 export function ProductCard({ product }: { product: Product }) {
@@ -114,7 +114,7 @@ export function ProductCard({ product }: { product: Product }) {
 
         <div className="mt-3 flex items-center justify-between">
           <span className="text-lg font-semibold text-foreground">
-            ${product.price}
+            {formatINR(product.price)}
           </span>
 
           <button
