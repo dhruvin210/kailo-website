@@ -12,4 +12,17 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Deploy target: Vercel. The base config defaults Nitro to Cloudflare and forces
+  // output into `dist/`, which Vercel can't detect — so it 404s. Here we force-enable
+  // Nitro with the `vercel` preset and point its output at `.vercel/output` (Vercel's
+  // Build Output API layout), overriding the base config's `dist/*` output paths.
+  // Preset can still be overridden at build time via NITRO_PRESET.
+  nitro: {
+    preset: process.env.NITRO_PRESET ?? "vercel",
+    output: {
+      dir: ".vercel/output",
+      serverDir: ".vercel/output/functions/__server.func",
+      publicDir: ".vercel/output/static",
+    },
+  },
 });
