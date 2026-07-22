@@ -2,6 +2,30 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
+import photo01 from "@/assets/gallery/photo01.jpeg";
+import photo02 from "@/assets/gallery/photo02.jpeg";
+import photo03 from "@/assets/gallery/photo03.jpeg";
+import photo04 from "@/assets/gallery/photo04.jpeg";
+import photo05 from "@/assets/gallery/photo05.jpeg";
+import photo06 from "@/assets/gallery/photo06.jpeg";
+import photo07 from "@/assets/gallery/photo07.jpeg";
+import photo08 from "@/assets/gallery/photo08.jpeg";
+import photo09 from "@/assets/gallery/photo09.jpeg";
+import photo10 from "@/assets/gallery/photo10.jpeg";
+import photo11 from "@/assets/gallery/photo11.jpeg";
+import photo12 from "@/assets/gallery/photo12.jpeg";
+import photo13 from "@/assets/gallery/photo13.jpeg";
+import photo14 from "@/assets/gallery/photo14.jpeg";
+import photo15 from "@/assets/gallery/photo15.jpeg";
+import photo16 from "@/assets/gallery/photo16.jpeg";
+import photo17 from "@/assets/gallery/photo17.jpeg";
+import photo18 from "@/assets/gallery/photo18.jpeg";
+import photo19 from "@/assets/gallery/photo19.jpeg";
+import photo20 from "@/assets/gallery/photo20.jpeg";
+import photo21 from "@/assets/gallery/photo21.jpeg";
+import photo22 from "@/assets/gallery/photo22.jpeg";
+import photo23 from "@/assets/gallery/photo23.jpeg";
+import photo24 from "@/assets/gallery/photo24.jpeg";
 
 export const Route = createFileRoute("/gallery")({
   head: () => ({
@@ -19,18 +43,30 @@ export const Route = createFileRoute("/gallery")({
 
 type Cat = "All" | "Products" | "Lifestyle" | "Events";
 const IMAGES: { src: string; cat: Exclude<Cat, "All"> }[] = [
-  { src: "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?auto=format&fit=crop&w=900&q=80", cat: "Products" },
-  { src: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=900&q=80", cat: "Lifestyle" },
-  { src: "https://images.unsplash.com/photo-1465821185615-20b3c2fbf41b?auto=format&fit=crop&w=900&q=80", cat: "Products" },
-  { src: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=900&q=80", cat: "Lifestyle" },
-  { src: "https://images.unsplash.com/photo-1501612780327-45045538702b?auto=format&fit=crop&w=900&q=80", cat: "Events" },
-  { src: "https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=900&q=80", cat: "Products" },
-  { src: "https://images.unsplash.com/photo-1471478331149-c72f17e33c73?auto=format&fit=crop&w=900&q=80", cat: "Products" },
-  { src: "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=900&q=80", cat: "Events" },
-  { src: "https://images.unsplash.com/photo-1556379118-7034d926d258?auto=format&fit=crop&w=900&q=80", cat: "Products" },
-  { src: "https://images.unsplash.com/photo-1485579149621-3123dd979885?auto=format&fit=crop&w=900&q=80", cat: "Lifestyle" },
-  { src: "https://images.unsplash.com/photo-1511735111819-9a3f7709049c?auto=format&fit=crop&w=900&q=80", cat: "Products" },
-  { src: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80", cat: "Events" },
+  { src: photo01, cat: "Events" },
+  { src: photo15, cat: "Products" },
+  { src: photo02, cat: "Lifestyle" },
+  { src: photo03, cat: "Lifestyle" },
+  { src: photo04, cat: "Lifestyle" },
+  { src: photo05, cat: "Lifestyle" },
+  { src: photo06, cat: "Lifestyle" },
+  { src: photo07, cat: "Lifestyle" },
+  { src: photo08, cat: "Lifestyle" },
+  { src: photo09, cat: "Lifestyle" },
+  { src: photo10, cat: "Lifestyle" },
+  { src: photo11, cat: "Lifestyle" },
+  { src: photo12, cat: "Lifestyle" },
+  { src: photo13, cat: "Lifestyle" },
+  { src: photo14, cat: "Lifestyle" },
+  { src: photo16, cat: "Lifestyle" },
+  { src: photo17, cat: "Events" },
+  { src: photo18, cat: "Events" },
+  { src: photo19, cat: "Lifestyle" },
+  { src: photo20, cat: "Lifestyle" },
+  { src: photo21, cat: "Lifestyle" },
+  { src: photo22, cat: "Lifestyle" },
+  { src: photo23, cat: "Lifestyle" },
+  { src: photo24, cat: "Lifestyle" },
 ];
 
 function Gallery() {
