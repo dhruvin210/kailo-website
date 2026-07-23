@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { formatINR, type Product } from "@/lib/products";
 import { useCart } from "@/lib/cart";
+import { getWishlist, toggleWishlist as persistWishlist, WISHLIST_EVENT } from "@/lib/wishlist";
 
 export function ProductCard({ product }: { product: Product }) {
   const { add } = useCart();
@@ -12,39 +13,19 @@ export function ProductCard({ product }: { product: Product }) {
   const [isFavourite, setIsFavourite] = useState(false);
 
   useEffect(() => {
-    const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
-    setIsFavourite(wishlist.includes(product.id));
+    const sync = () => setIsFavourite(getWishlist().includes(product.id));
+    sync();
+    window.addEventListener(WISHLIST_EVENT, sync);
+    return () => window.removeEventListener(WISHLIST_EVENT, sync);
   }, [product.id]);
 
   const toggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
-
-    let wishlist: string[] = JSON.parse(
-      localStorage.getItem("wishlist") || "[]"
-    );
-
-    if (wishlist.includes(product.id)) {
-      wishlist = wishlist.filter((id) => id !== product.id);
-
-      toast.success("Removed from wishlist", {
-        closeButton: true,
-      });
-
-      setIsFavourite(false);
-    } else {
-      wishlist.push(product.id);
-
-      toast.success("Added to wishlist", {
-        closeButton: true,
-      });
-
-      setIsFavourite(true);
-    }
-
-    localStorage.setItem("wishlist", JSON.stringify(wishlist));
-
-    // Notify Navbar and Wishlist page
-    window.dispatchEvent(new Event("wishlistUpdated"));
+    const nowFavourite = persistWishlist(product.id);
+    setIsFavourite(nowFavourite);
+    toast.success(nowFavourite ? "Added to wishlist" : "Removed from wishlist", {
+      closeButton: true,
+    });
   };
 
   return (

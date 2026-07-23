@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { SlidersHorizontal, ChevronDown, PackageOpen, X } from "lucide-react";
 
@@ -7,7 +7,13 @@ import { SiteLayout } from "@/components/SiteLayout";
 import { ProductCard } from "@/components/ProductCard";
 import { PRODUCTS, CATEGORIES, formatINR } from "@/lib/products";
 
+type ProductSearch = { category?: string; q?: string };
+
 export const Route = createFileRoute("/products")({
+  validateSearch: (search: Record<string, unknown>): ProductSearch => ({
+    category: typeof search.category === "string" ? search.category : undefined,
+    q: typeof search.q === "string" ? search.q : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Shop — Kailo" },
@@ -37,26 +43,47 @@ const reveal = {
   transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const },
 };
 
+const isCategory = (value: string): value is (typeof CATEGORIES)[number] =>
+  (CATEGORIES as readonly string[]).includes(value);
+
 function Products() {
-  const [cat, setCat] = useState<(typeof CATEGORIES)[number]>("All");
+  const { category, q } = Route.useSearch();
+  const navigate = Route.useNavigate();
+
+  const [cat, setCat] = useState<(typeof CATEGORIES)[number]>(
+    category && isCategory(category) ? category : "All"
+  );
   const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
   const [sort, setSort] = useState<Sort>("newest");
 
+  // Keep the active category in sync when arriving via a category link
+  // (e.g. from the footer) while already on this page.
+  useEffect(() => {
+    if (category && isCategory(category)) setCat(category);
+  }, [category]);
+
+  const query = (q ?? "").trim().toLowerCase();
+
   const items = useMemo(() => {
     let list = PRODUCTS.filter(
-      (p) => (cat === "All" || p.category === cat) && p.price <= maxPrice
+      (p) =>
+        (cat === "All" || p.category === cat) &&
+        p.price <= maxPrice &&
+        (query === "" || p.name.toLowerCase().includes(query))
     );
     if (sort === "price-asc") list = [...list].sort((a, b) => a.price - b.price);
     if (sort === "price-desc") list = [...list].sort((a, b) => b.price - a.price);
     if (sort === "popular") list = [...list].sort((a, b) => b.reviews - a.reviews);
     return list;
-  }, [cat, maxPrice, sort]);
+  }, [cat, maxPrice, sort, query]);
 
-  const isFiltered = cat !== "All" || maxPrice < MAX_PRICE;
+  const isFiltered = cat !== "All" || maxPrice < MAX_PRICE || query !== "";
 
   const resetFilters = () => {
     setCat("All");
     setMaxPrice(MAX_PRICE);
+    // Drop any category/search coming from the URL so the reset actually sticks.
+    if (category || q) navigate({ search: {}, replace: true });
   };
 
   return (

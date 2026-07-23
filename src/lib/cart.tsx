@@ -23,7 +23,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) setItems(JSON.parse(raw));
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      // Guard against corrupted/legacy values — a non-array here would crash
+      // the reducers below (.reduce / .map) on render.
+      if (
+        Array.isArray(parsed) &&
+        parsed.every(
+          (i) => i && typeof i.id === "string" && typeof i.quantity === "number"
+        )
+      ) {
+        setItems(parsed);
+      }
     } catch {}
   }, []);
 

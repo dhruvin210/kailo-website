@@ -1,11 +1,12 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ChevronRight, Heart, Minus, Plus, ShoppingBag, Star } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ProductCard } from "@/components/ProductCard";
 import { formatINR, getProduct, PRODUCTS } from "@/lib/products";
 import { useCart } from "@/lib/cart";
+import { getWishlist, toggleWishlist, WISHLIST_EVENT } from "@/lib/wishlist";
 
 export const Route = createFileRoute("/products/$id")({
   loader: ({ params }) => {
@@ -47,7 +48,15 @@ function ProductDetail() {
   const [activeImg, setActiveImg] = useState(0);
   const [qty, setQty] = useState(1);
   const [tab, setTab] = useState<"desc" | "specs" | "reviews">("desc");
+  const [isFavourite, setIsFavourite] = useState(false);
   const related = PRODUCTS.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
+
+  useEffect(() => {
+    const sync = () => setIsFavourite(getWishlist().includes(product.id));
+    sync();
+    window.addEventListener(WISHLIST_EVENT, sync);
+    return () => window.removeEventListener(WISHLIST_EVENT, sync);
+  }, [product.id]);
 
   return (
     <SiteLayout>
@@ -118,11 +127,16 @@ function ProductDetail() {
                 <ShoppingBag className="h-4 w-4" /> Add to cart
               </button>
               <button
-                onClick={() => toast.success("Added to wishlist")}
+                onClick={() => {
+                  const nowFavourite = toggleWishlist(product.id);
+                  setIsFavourite(nowFavourite);
+                  toast.success(nowFavourite ? "Added to wishlist" : "Removed from wishlist");
+                }}
                 className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border text-foreground hover:text-primary"
-                aria-label="Wishlist"
+                aria-label={isFavourite ? "Remove from wishlist" : "Add to wishlist"}
+                aria-pressed={isFavourite}
               >
-                <Heart className="h-5 w-5" />
+                <Heart className={`h-5 w-5 ${isFavourite ? "fill-red-500 text-red-500" : ""}`} />
               </button>
             </div>
 

@@ -1,8 +1,9 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, ShoppingBag, X, Heart,Search } from "lucide-react";
+import { Menu, ShoppingBag, X, Heart, Search } from "lucide-react";
 import { Logo } from "./Logo";
 import { useCart } from "@/lib/cart";
+import { getWishlist, WISHLIST_EVENT } from "@/lib/wishlist";
 
 
 const LINKS = [
@@ -15,12 +16,21 @@ const LINKS = [
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);   // ← Add this back
+  const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const { count } = useCart();
   const { location } = useRouterState();
+  const navigate = useNavigate();
+
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = search.trim();
+    navigate({ to: "/products", search: q ? { q } : {} });
+    setSearch("");
+    setSearchOpen(false);
+  };
 
   // On the homepage the navbar floats transparently over the hero image and
   // only turns solid white once the user scrolls past the top.
@@ -44,16 +54,16 @@ export function Navbar() {
   }, [location.pathname]);
 
   useEffect(() => {
-    const updateWishlist = () => {
-      const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
-      setWishlistCount(wishlist.length);
-    };
+    const updateWishlist = () => setWishlistCount(getWishlist().length);
 
     updateWishlist();
 
+    // `wishlistUpdated` fires on same-tab changes; `storage` covers other tabs.
+    window.addEventListener(WISHLIST_EVENT, updateWishlist);
     window.addEventListener("storage", updateWishlist);
 
     return () => {
+      window.removeEventListener(WISHLIST_EVENT, updateWishlist);
       window.removeEventListener("storage", updateWishlist);
     };
   }, []);
@@ -116,8 +126,13 @@ export function Navbar() {
         </button>
 
         {searchOpen && (
-          <div className="absolute right-0 top-1/2 z-50 flex -translate-y-1/2 items-center rounded-full border border-border bg-white px-4 py-2 shadow-xl">
-            <Search className="mr-2 h-4 w-4 text-gray-500" />
+          <form
+            onSubmit={submitSearch}
+            className="absolute right-0 top-1/2 z-50 flex -translate-y-1/2 items-center rounded-full border border-border bg-white px-4 py-2 shadow-xl"
+          >
+            <button type="submit" aria-label="Search">
+              <Search className="mr-2 h-4 w-4 text-gray-500 hover:text-black" />
+            </button>
 
             <input
               autoFocus
@@ -134,10 +149,11 @@ export function Navbar() {
                 setSearch("");
                 setSearchOpen(false);
               }}
+              aria-label="Close search"
             >
               <X className="ml-2 h-4 w-4 text-gray-500 hover:text-black" />
             </button>
-          </div>
+          </form>
         )}
 
         {/* Wishlist */}

@@ -59,7 +59,7 @@ export function Footer() {
               <li key={c}>
                 <Link
                   to="/products"
-                  search={{ category: c } as never}
+                  search={{ category: c }}
                   className="transition-colors duration-300 hover:text-black"
                 >
                   {c}

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { PRODUCTS, type Product } from "@/lib/products";
+import { getWishlist, WISHLIST_EVENT } from "@/lib/wishlist";
 
 export const Route = createFileRoute("/wishlist")({
   component: Wishlist,
@@ -12,23 +13,22 @@ function Wishlist() {
 
   useEffect(() => {
     const loadWishlist = () => {
-      const wishlistIds: string[] = JSON.parse(
-        localStorage.getItem("wishlist") || "[]"
+      const wishlistIds = getWishlist();
+      setWishlistProducts(
+        PRODUCTS.filter((product) => wishlistIds.includes(product.id))
       );
-
-      const favouriteProducts = PRODUCTS.filter((product) =>
-        wishlistIds.includes(product.id)
-      );
-
-      setWishlistProducts(favouriteProducts);
     };
 
     loadWishlist();
 
-    // Reload whenever the page gains focus
+    // Refresh on same-tab changes, cross-tab changes, and window focus.
+    window.addEventListener(WISHLIST_EVENT, loadWishlist);
+    window.addEventListener("storage", loadWishlist);
     window.addEventListener("focus", loadWishlist);
 
     return () => {
+      window.removeEventListener(WISHLIST_EVENT, loadWishlist);
+      window.removeEventListener("storage", loadWishlist);
       window.removeEventListener("focus", loadWishlist);
     };
   }, []);
