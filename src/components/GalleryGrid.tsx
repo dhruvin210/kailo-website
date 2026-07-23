@@ -1,17 +1,6 @@
-import { motion } from "framer-motion";
-
 type GalleryGridProps = {
   images: string[];
 };
-
-const layout = [
-  "md:col-span-2 md:row-span-2",
-  "",
-  "",
-  "",
-  "",
-  "",
-];
 
 export default function GalleryGrid({ images }: GalleryGridProps) {
   return (
@@ -26,22 +15,21 @@ export default function GalleryGrid({ images }: GalleryGridProps) {
         </p>
       </div>
 
-      <div className="grid auto-rows-[250px] grid-cols-1 gap-6 md:grid-cols-3">
+      {/* Masonry columns so every photo shows in full at its natural aspect ratio */}
+      <div className="columns-1 gap-6 sm:columns-2 lg:columns-3 [column-fill:balance]">
         {images.map((image, index) => (
-          <motion.div
+          <div
             key={index}
-            whileHover={{ scale: 1.03 }}
-            transition={{ duration: 0.3 }}
-            className={`overflow-hidden rounded-3xl shadow-lg ${layout[index % layout.length]}`}
+            className="mb-6 break-inside-avoid overflow-hidden rounded-3xl shadow-lg"
           >
             <img
               src={image}
               alt={`Gallery ${index + 1}`}
               loading="lazy"
               decoding="async"
-              className="h-full w-full object-cover transition duration-500 hover:scale-110"
+              className="w-full h-auto transition duration-500 hover:scale-105"
             />
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>

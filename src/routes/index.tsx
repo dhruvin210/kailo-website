@@ -21,7 +21,7 @@ import GalleryGrid from "@/components/GalleryGrid";
 import { PRODUCTS } from "@/lib/products";
 
 import gallery1 from "@/assets/gallery/gallery1.jpeg";
-import gallery2 from "@/assets/gallery/gallery2.jpeg";
+import gallery2 from "@/assets/gallery/photo21.jpeg";
 import gallery3 from "@/assets/gallery/gallery3.jpeg";
 import gallery4 from "@/assets/gallery/gallery4.jpeg";
 import gallery5 from "@/assets/gallery/gallery5.jpeg";
