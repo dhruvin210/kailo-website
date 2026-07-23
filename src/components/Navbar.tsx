@@ -104,7 +104,7 @@ export function Navbar() {
         })}
       </nav>
 
-      <div className="relative flex items-center gap-2">
+      <div className="relative flex items-center gap-2 md:ml-8">
 
         {/* Search */}
         <button
