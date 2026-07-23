@@ -37,6 +37,8 @@ export default function GalleryGrid({ images }: GalleryGridProps) {
             <img
               src={image}
               alt={`Gallery ${index + 1}`}
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover transition duration-500 hover:scale-110"
             />
           </motion.div>
