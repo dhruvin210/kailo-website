@@ -29,9 +29,10 @@ import gallery6 from "@/assets/gallery/gallery6.jpeg";
 
 import storyImage from "@/assets/gallery/photo07.jpeg";
 
-import hero1 from "@/assets/gallery/photo05.jpeg";
-import hero2 from "@/assets/gallery/photo10.jpeg";
-import hero3 from "@/assets/gallery/photo20.jpeg";
+import hero1 from "@/assets/gallery/hero1.png";
+import hero2 from "@/assets/gallery/hero2.png";
+import hero3 from "@/assets/gallery/hero3.png";
+import hero4 from "@/assets/gallery/hero4.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -52,18 +53,23 @@ export const Route = createFileRoute("/")({
 const heroSlides = [
   {
     image: hero1,
-    position: "center 28%",
-    alt: "A musician carrying a handcrafted brown leather Kailo bag through a bamboo grove",
+    position: "center center",
+    alt: "Three friends in a Goa garden with handcrafted Kailo instrument bags",
   },
   {
     image: hero2,
-    position: "center 30%",
-    alt: "A musician resting by a lake with a red leather Kailo ukulele bag",
+    position: "center center",
+    alt: "A woman by the river leaning on a tree with a red leather Kailo ukulele bag",
   },
   {
     image: hero3,
-    position: "center 32%",
-    alt: "A musician by the river carrying a blue leather Kailo instrument bag",
+    position: "center center",
+    alt: "A musician in a bamboo grove carrying a brown leather Kailo instrument bag",
+  },
+  {
+    image: hero4,
+    position: "center 40%",
+    alt: "A musician on garden steps with a black Kailo ukulele bag",
   },
 ];
 
@@ -192,7 +198,7 @@ function Home() {
         {/* Parallax slider — oversized so the drift never reveals an edge */}
         <motion.div
           style={{ y: imageY }}
-          className="absolute -top-[9%] left-0 h-[118%] w-full will-change-transform"
+          className="absolute inset-0 h-full w-full will-change-transform"
         >
           <motion.div
             className="flex h-full w-full cursor-grab active:cursor-grabbing"
@@ -213,9 +219,7 @@ function Home() {
                   alt={s.alt}
                   draggable={false}
                   style={{ objectPosition: s.position }}
-                  className={`h-full w-full origin-center object-cover ${
-                    i === slide ? "animate-slow-zoom" : ""
-                  }`}
+                  className="h-full w-full origin-center object-contain"
                 />
               </div>
             ))}
@@ -248,7 +252,7 @@ function Home() {
 
         <motion.div
           style={{ y: textY, opacity: textOpacity }}
-          className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8"
+          className="relative z-10 mx-auto w-full max-w-400 px-4 lg:px-6"
         >
           <div className="max-w-3xl text-white">
             <motion.div
@@ -265,7 +269,7 @@ function Home() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.05 }}
-              className="text-5xl font-semibold leading-[1.05] md:text-7xl"
+              className="text-4xl font-semibold leading-[1.08] md:text-6xl"
             >
               Crafted with finesse,
               <br />
@@ -278,7 +282,7 @@ function Home() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.15 }}
-              className="mt-6 max-w-xl text-lg leading-relaxed text-white/90"
+              className="mt-5 max-w-xl text-base leading-relaxed text-white/90"
             >
               Premium leather ukulele bags and handcrafted leather &amp; denim
               straps for artists who carry their music with pride.
