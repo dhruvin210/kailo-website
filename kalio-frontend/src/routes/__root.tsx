@@ -7,10 +7,9 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CartProvider } from "../lib/cart";
 import { Toaster } from "../components/ui/sonner";
 
@@ -39,9 +38,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -97,8 +93,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:description",
         content: "Crafted with finesse, made to move your soul. Premium cases, straps, tuners and care kits for musicians.",
       },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c39d181e-0eaf-47ce-bda9-98ceca3b8cbd/id-preview-0bbda6d0--64a19845-c898-43db-82dc-8ed71708bb83.lovable.app-1780546339592.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c39d181e-0eaf-47ce-bda9-98ceca3b8cbd/id-preview-0bbda6d0--64a19845-c898-43db-82dc-8ed71708bb83.lovable.app-1780546339592.png" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
