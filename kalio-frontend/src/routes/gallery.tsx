@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { SiteLayout } from "@/components/SiteLayout";
+import { Lightbox } from "@/components/Lightbox";
 
 import photo01 from "@/assets/gallery/photo01.jpeg";
 import photo02 from "@/assets/gallery/photo02.jpeg";
@@ -48,8 +48,7 @@ export const Route = createFileRoute("/gallery")({
       { title: "Gallery — Kailo" },
       {
         name: "description",
-        content:
-          "A visual journey through Kailo accessories, lifestyle moments and events.",
+        content: "A visual journey through Kailo accessories, lifestyle moments and events.",
       },
       { property: "og:title", content: "Gallery — Kailo" },
       { property: "og:description", content: "Visual moments from the Kailo world." },
@@ -116,13 +115,10 @@ function Gallery() {
   const count = filtered.length;
 
   const close = useCallback(() => setOpen(null), []);
-  const next = useCallback(
-    () => setOpen((o) => (o === null ? o : (o + 1) % count)),
-    [count]
-  );
+  const next = useCallback(() => setOpen((o) => (o === null ? o : (o + 1) % count)), [count]);
   const prev = useCallback(
     () => setOpen((o) => (o === null ? o : (o - 1 + count) % count)),
-    [count]
+    [count],
   );
 
   return (
@@ -139,20 +135,15 @@ function Gallery() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/15" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/25" />
 
-        <motion.div
-          {...reveal}
-          className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8"
-        >
+        <motion.div {...reveal} className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8">
           <div className="max-w-2xl text-white">
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-primary">
               Gallery
             </p>
-            <h1 className="text-4xl font-semibold md:text-6xl">
-              Moments with Kailo
-            </h1>
+            <h1 className="text-4xl font-semibold md:text-6xl">Moments with Kailo</h1>
             <p className="mt-4 max-w-xl text-lg leading-relaxed text-white/90">
-              A visual journey through our accessories, the artists who carry
-              them, and the moments in between.
+              A visual journey through our accessories, the artists who carry them, and the moments
+              in between.
             </p>
           </div>
         </motion.div>
@@ -215,7 +206,7 @@ function Gallery() {
         {open !== null && (
           <Lightbox
             src={filtered[open].src}
-            cat={filtered[open].cat}
+            alt={`Kailo ${filtered[open].cat.toLowerCase()} moment, enlarged`}
             index={open}
             total={count}
             onClose={close}
@@ -225,137 +216,5 @@ function Gallery() {
         )}
       </AnimatePresence>
     </SiteLayout>
-  );
-}
-
-/* ─────────────────────────── LIGHTBOX ─────────────────────────── */
-
-function Lightbox({
-  src,
-  cat,
-  index,
-  total,
-  onClose,
-  onNext,
-  onPrev,
-}: {
-  src: string;
-  cat: string;
-  index: number;
-  total: number;
-  onClose: () => void;
-  onNext: () => void;
-  onPrev: () => void;
-}) {
-  const dialogRef = useRef<HTMLDivElement>(null);
-
-  // Keyboard nav + focus trap + body scroll lock.
-  useEffect(() => {
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    document.body.style.overflow = "hidden";
-
-    // Move focus into the dialog for screen readers / keyboard users.
-    dialogRef.current?.focus();
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      } else if (e.key === "ArrowRight") {
-        onNext();
-      } else if (e.key === "ArrowLeft") {
-        onPrev();
-      } else if (e.key === "Tab") {
-        // Trap focus within the dialog's focusable controls.
-        const focusables = dialogRef.current?.querySelectorAll<HTMLElement>(
-          "button, [href], [tabindex]:not([tabindex='-1'])"
-        );
-        if (!focusables || focusables.length === 0) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = "";
-      previouslyFocused?.focus?.();
-    };
-  }, [onClose, onNext, onPrev]);
-
-  return (
-    <motion.div
-      ref={dialogRef}
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Image ${index + 1} of ${total}`}
-      tabIndex={-1}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
-      onClick={onClose}
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md outline-none sm:p-8"
-    >
-      {/* Counter */}
-      <div className="absolute left-1/2 top-5 -translate-x-1/2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-white backdrop-blur">
-        {index + 1} / {total}
-      </div>
-
-      {/* Close */}
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Close"
-        className="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/25 sm:right-6 sm:top-6"
-      >
-        <X className="h-5 w-5" />
-      </button>
-
-      {/* Prev */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onPrev();
-        }}
-        aria-label="Previous image"
-        className="absolute left-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/25 sm:left-6"
-      >
-        <ChevronLeft className="h-6 w-6" />
-      </button>
-
-      {/* Image */}
-      <motion.img
-        key={src}
-        src={src}
-        alt={`Kailo ${cat.toLowerCase()} moment, enlarged`}
-        onClick={(e) => e.stopPropagation()}
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl"
-      />
-
-      {/* Next */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onNext();
-        }}
-        aria-label="Next image"
-        className="absolute right-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/25 sm:right-6"
-      >
-        <ChevronRight className="h-6 w-6" />
-      </button>
-    </motion.div>
   );
 }

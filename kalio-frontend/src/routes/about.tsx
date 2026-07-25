@@ -138,7 +138,7 @@ function About() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.05 }}
-              className="text-5xl font-semibold leading-[1.05] md:text-7xl"
+              className="text-5xl font-semibold leading-[1.12] md:text-7xl"
             >
               Built for the moments
               <br />
