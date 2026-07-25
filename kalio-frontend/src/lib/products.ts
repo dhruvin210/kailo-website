@@ -13,6 +13,13 @@ export type Product = {
   stock: number;
 };
 
+import ukuleleCaseImg from "@/assets/products/ukulele-case.png";
+import violinCaseImg from "@/assets/products/violin-case.png";
+import leatherStrapImg from "@/assets/products/leather-strap.png";
+import clipTunerImg from "@/assets/products/clip-tuner.png";
+import pickSetImg from "@/assets/products/pick-set.png";
+import cleaningKitImg from "@/assets/products/cleaning-kit.png";
+
 export const formatINR = (amount: number) =>
   `₹${amount.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 
@@ -27,8 +34,8 @@ export const PRODUCTS: Product[] = [
     price: 7499,
     rating: 4.8,
     reviews: 124,
-    image: img("photo-1525201548942-d8732f6617a0", 1),
-    images: [img("photo-1525201548942-d8732f6617a0", 1), img("photo-1510915361894-db8b60106cb1", 2)],
+    image: ukuleleCaseImg,
+    images: [ukuleleCaseImg, img("photo-1510915361894-db8b60106cb1", 2)],
     description: "Plush-lined hardshell built around your soprano or concert uke. Reinforced corners and a velvet interior keep tone and finish pristine.",
     specs: [
       { label: "Material", value: "ABS shell, velvet lining" },
@@ -62,8 +69,8 @@ export const PRODUCTS: Product[] = [
     price: 28999,
     rating: 4.7,
     reviews: 87,
-    image: img("photo-1465821185615-20b3c2fbf41b", 5),
-    images: [img("photo-1465821185615-20b3c2fbf41b", 5)],
+    image: violinCaseImg,
+    images: [violinCaseImg],
     description: "Lightweight carbon-fibre shell with hygrometer and four-bow holder. Travel-ready.",
     specs: [
       { label: "Material", value: "Carbon composite" },
@@ -79,8 +86,8 @@ export const PRODUCTS: Product[] = [
     price: 6499,
     rating: 4.9,
     reviews: 421,
-    image: img("photo-1519682337058-a94d519337bc", 6),
-    images: [img("photo-1519682337058-a94d519337bc", 6)],
+    image: leatherStrapImg,
+    images: [leatherStrapImg],
     description: "Full-grain vegetable-tanned leather, hand-stitched in our Nashville workshop.",
     specs: [
       { label: "Material", value: "Full-grain leather" },
@@ -130,8 +137,8 @@ export const PRODUCTS: Product[] = [
     price: 2999,
     rating: 4.8,
     reviews: 540,
-    image: img("photo-1511735111819-9a3f7709049c", 9),
-    images: [img("photo-1511735111819-9a3f7709049c", 9)],
+    image: clipTunerImg,
+    images: [clipTunerImg],
     description: "Full-colour display, 360° rotation, piezo-accurate to ±0.5 cents.",
     specs: [
       { label: "Range", value: "A0 – C8" },
@@ -165,8 +172,8 @@ export const PRODUCTS: Product[] = [
     price: 1499,
     rating: 4.7,
     reviews: 612,
-    image: img("photo-1453090927415-5f45085b65c0", 11),
-    images: [img("photo-1453090927415-5f45085b65c0", 11)],
+    image: pickSetImg,
+    images: [pickSetImg],
     description: "Twelve picks across four gauges in a magnetic tin. Made from Delrin and tortoise-style acetal.",
     specs: [
       { label: "Count", value: "12 picks" },
@@ -197,8 +204,8 @@ export const PRODUCTS: Product[] = [
     price: 1999,
     rating: 4.6,
     reviews: 142,
-    image: img("photo-1556379118-7034d926d258", 13),
-    images: [img("photo-1556379118-7034d926d258", 13)],
+    image: cleaningKitImg,
+    images: [cleaningKitImg],
     description: "Microfibre cloth, string conditioner, fretboard oil. Doubles the life of your set.",
     specs: [
       { label: "Includes", value: "Cloth + 30ml conditioner + 15ml oil" },

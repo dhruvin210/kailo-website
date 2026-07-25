@@ -6,6 +6,7 @@ import { SlidersHorizontal, ChevronDown, PackageOpen, X } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { ProductCard } from "@/components/ProductCard";
 import { PRODUCTS, CATEGORIES, formatINR } from "@/lib/products";
+import heroImg from "@/assets/lifestyle/ukulele-window.png";
 
 type ProductSearch = { category?: string; q?: string };
 
@@ -88,22 +89,35 @@ function Products() {
 
   return (
     <SiteLayout>
-      {/* ───────────────────────── HEADER ──────────────────────── */}
-      <section className="border-b border-border bg-[var(--bg-soft)] py-20">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <motion.div {...reveal} className="max-w-2xl">
+      {/* ───────────────────────── HERO ──────────────────────── */}
+      <section className="relative flex h-[70vh] min-h-[520px] items-center overflow-hidden bg-black">
+        {/* Full-bleed hero */}
+        <img
+          src={heroImg}
+          alt="A Kailo ukulele resting by the window"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        {/* Legibility grade — dark on the left where the text sits */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/15" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/25" />
+
+        <motion.div
+          {...reveal}
+          className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8"
+        >
+          <div className="max-w-2xl text-white">
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-primary">
               Shop
             </p>
-            <h1 className="text-4xl font-semibold md:text-5xl">
+            <h1 className="text-4xl font-semibold md:text-6xl">
               All accessories
             </h1>
-            <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-white/90">
               Twelve products, hand-picked. Filter by category, price or sort to
               find your fit.
             </p>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* ─────────────────────── FILTERS + GRID ─────────────────── */}

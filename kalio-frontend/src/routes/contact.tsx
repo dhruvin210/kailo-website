@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 
 import { SiteLayout } from "@/components/SiteLayout";
+import workbenchImg from "@/assets/lifestyle/workbench.png";
+import artisanImg from "@/assets/lifestyle/artisan.png";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -94,19 +96,32 @@ function Contact() {
   return (
     <SiteLayout>
       {/* ───────────────────────── HEADER ──────────────────────── */}
-      <section className="border-b border-border bg-[var(--bg-soft)] py-20">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <motion.div {...reveal} className="max-w-2xl">
+      <section className="relative flex h-[70vh] min-h-[520px] items-center overflow-hidden bg-black">
+        {/* Full-bleed workshop hero */}
+        <img
+          src={workbenchImg}
+          alt="The Kailo workshop bench in Nashville"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        {/* Legibility grade — dark on the left where the text sits */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/15" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/25" />
+
+        <motion.div
+          {...reveal}
+          className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8"
+        >
+          <div className="max-w-2xl text-white">
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-primary">
               Contact
             </p>
-            <h1 className="text-4xl font-semibold md:text-5xl">Let's talk</h1>
-            <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+            <h1 className="text-4xl font-semibold md:text-6xl">Let's talk</h1>
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-white/90">
               Questions, partnerships, press — drop us a line and we'll get back
               within one business day.
             </p>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* ─────────────────────── FORM + DETAILS ─────────────────── */}
@@ -234,27 +249,15 @@ function Contact() {
               </div>
             ))}
 
-            {/* Map block */}
+            {/* Workshop block */}
             <div className="relative overflow-hidden rounded-3xl border border-border bg-[var(--bg-soft)]">
-              {/* Stylised map grid */}
-              <div
-                className="aspect-[4/3] w-full"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
-                  backgroundSize: "36px 36px",
-                }}
-                aria-hidden="true"
+              {/* Our Nashville workshop */}
+              <img
+                src={artisanImg}
+                alt="A Kailo craftsperson hand-stitching leather at the Nashville workshop"
+                loading="lazy"
+                className="aspect-[4/3] w-full object-cover"
               />
-              {/* Pin */}
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <span className="relative flex h-4 w-4">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
-                  <span className="relative grid h-4 w-4 place-items-center rounded-full bg-primary text-primary-foreground">
-                    <MapPin className="h-2.5 w-2.5" />
-                  </span>
-                </span>
-              </div>
               {/* Address overlay */}
               <div className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card/90 px-4 py-3 backdrop-blur">
                 <div>

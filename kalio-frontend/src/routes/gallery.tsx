@@ -30,6 +30,18 @@ import photo22 from "@/assets/gallery/photo22.jpeg";
 import photo23 from "@/assets/gallery/photo23.jpeg";
 import photo24 from "@/assets/gallery/photo24.jpeg";
 
+// AI-generated, on-brand Kailo photography
+import aiUkuleleCase from "@/assets/products/ukulele-case.png";
+import aiViolinCase from "@/assets/products/violin-case.png";
+import aiLeatherStrap from "@/assets/products/leather-strap.png";
+import aiClipTuner from "@/assets/products/clip-tuner.png";
+import aiPickSet from "@/assets/products/pick-set.png";
+import aiCleaningKit from "@/assets/products/cleaning-kit.png";
+import aiRestringing from "@/assets/lifestyle/restringing.png";
+import aiUkuleleWindow from "@/assets/lifestyle/ukulele-window.png";
+import aiWorkbench from "@/assets/lifestyle/workbench.png";
+import aiArtisan from "@/assets/lifestyle/artisan.png";
+
 export const Route = createFileRoute("/gallery")({
   head: () => ({
     meta: [
@@ -52,6 +64,16 @@ type Cat = "All" | "Products" | "Lifestyle" | "Events";
 const CATS: Cat[] = ["All", "Products", "Lifestyle", "Events"];
 
 const IMAGES: { src: string; cat: Exclude<Cat, "All"> }[] = [
+  // Featured AI-generated Kailo photography
+  { src: aiUkuleleCase, cat: "Products" },
+  { src: aiLeatherStrap, cat: "Products" },
+  { src: aiArtisan, cat: "Lifestyle" },
+  { src: aiViolinCase, cat: "Products" },
+  { src: aiWorkbench, cat: "Lifestyle" },
+  { src: aiPickSet, cat: "Products" },
+  { src: aiUkuleleWindow, cat: "Lifestyle" },
+  { src: aiClipTuner, cat: "Products" },
+  { src: aiCleaningKit, cat: "Products" },
   { src: photo01, cat: "Events" },
   { src: photo15, cat: "Products" },
   { src: photo02, cat: "Lifestyle" },
@@ -105,22 +127,35 @@ function Gallery() {
 
   return (
     <SiteLayout>
-      {/* ───────────────────────── HEADER ──────────────────────── */}
-      <section className="border-b border-border bg-[var(--bg-soft)] py-20">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <motion.div {...reveal} className="max-w-2xl">
+      {/* ───────────────────────── HERO ──────────────────────── */}
+      <section className="relative flex h-[70vh] min-h-[520px] items-center overflow-hidden bg-black">
+        {/* Full-bleed hero */}
+        <img
+          src={aiRestringing}
+          alt="A musician restringing a guitar in the Kailo workshop"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        {/* Legibility grade — dark on the left where the text sits */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/15" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/25" />
+
+        <motion.div
+          {...reveal}
+          className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8"
+        >
+          <div className="max-w-2xl text-white">
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-primary">
               Gallery
             </p>
-            <h1 className="text-4xl font-semibold md:text-5xl">
+            <h1 className="text-4xl font-semibold md:text-6xl">
               Moments with Kailo
             </h1>
-            <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-white/90">
               A visual journey through our accessories, the artists who carry
               them, and the moments in between.
             </p>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* ─────────────────────── FILTER + MASONRY ───────────────── */}
