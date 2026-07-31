@@ -48,6 +48,11 @@ export default defineConfig(async ({ command, mode }) => {
     define[`import.meta.env.${key}`] = JSON.stringify(value);
   }
 
+  // Always defined, so `CMS_IS_STATIC` in lib/strapi.ts is a build-time constant
+  // rather than a runtime lookup — which lets the unused branch tree-shake, and
+  // makes "no CMS configured" mean the snapshot rather than an undefined origin.
+  define["import.meta.env.VITE_STRAPI_URL"] ??= JSON.stringify("");
+
   return {
     define,
     server: { host: "::", port: 8080 },
