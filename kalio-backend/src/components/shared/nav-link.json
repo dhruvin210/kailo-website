@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_shared_nav_links",
+  "info": {
+    "displayName": "Nav link",
+    "description": "A label + href pair for the navbar and footer link lists.",
+    "icon": "link"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "href": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

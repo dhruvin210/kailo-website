@@ -5,7 +5,8 @@ import { SlidersHorizontal, ChevronDown, PackageOpen, X } from "lucide-react";
 
 import { SiteLayout } from "@/components/SiteLayout";
 import { ProductCard } from "@/components/ProductCard";
-import { PRODUCTS, CATEGORIES, formatINR } from "@/lib/products";
+import { formatINR } from "@/lib/products";
+import { categoriesQuery, productsQuery } from "@/lib/queries";
 import heroImg from "@/assets/lifestyle/ukulele-window.png";
 
 type ProductSearch = { category?: string; q?: string };
@@ -15,13 +16,22 @@ export const Route = createFileRoute("/products")({
     category: typeof search.category === "string" ? search.category : undefined,
     q: typeof search.q === "string" ? search.q : undefined,
   }),
+  // Both reads are awaited here so the grid is server-rendered with content, and
+  // returned so the same data survives hydration without a second fetch.
+  loader: async ({ context }) => {
+    const [products, categories] = await Promise.all([
+      context.queryClient.ensureQueryData(productsQuery()),
+      context.queryClient.ensureQueryData(categoriesQuery()),
+    ]);
+    return { products, categories };
+  },
   head: () => ({
     meta: [
       { title: "Shop — Kailo" },
       {
         name: "description",
         content:
-          "Browse premium cases, straps, tuners, picks and care kits, designed for musicians.",
+          "Browse handmade leather ukulele bags and hand-stitched ukulele straps, designed for musicians.",
       },
       { property: "og:title", content: "Shop — Kailo" },
       { property: "og:description", content: "Premium instrument accessories." },
@@ -34,7 +44,14 @@ export const Route = createFileRoute("/products")({
 
 type Sort = "newest" | "price-asc" | "price-desc" | "popular";
 
-const MAX_PRICE = 30000;
+/**
+ * The slider's ends bracket the catalogue: straps start at ₹600 and a tenor bag
+ * is the dearest thing Kailo sells at ₹5,000. A range wider than the prices makes
+ * most of the track dead, and a floor above the straps makes them unreachable.
+ */
+const MIN_PRICE = 500;
+const MAX_PRICE = 5000;
+const PRICE_STEP = 100;
 
 /** Shared scroll-reveal defaults — matches the homepage. */
 const reveal = {
@@ -44,39 +61,40 @@ const reveal = {
   transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const },
 };
 
-const isCategory = (value: string): value is (typeof CATEGORIES)[number] =>
-  (CATEGORIES as readonly string[]).includes(value);
-
 function Products() {
   const { category, q } = Route.useSearch();
   const navigate = Route.useNavigate();
+  const { products, categories } = Route.useLoaderData();
 
-  const [cat, setCat] = useState<(typeof CATEGORIES)[number]>(
-    category && isCategory(category) ? category : "All"
-  );
+  // "All" is a UI-only pill and is deliberately not stored in the CMS; the rest of
+  // the list comes from the Category collection so it cannot drift from the data.
+  const pills = useMemo(() => ["All", ...categories.map((c) => c.name)], [categories]);
+  const isCategory = (value: string) => pills.includes(value);
+
+  const [cat, setCat] = useState<string>(category && isCategory(category) ? category : "All");
   const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
   const [sort, setSort] = useState<Sort>("newest");
 
   // Keep the active category in sync when arriving via a category link
   // (e.g. from the footer) while already on this page.
   useEffect(() => {
-    if (category && isCategory(category)) setCat(category);
-  }, [category]);
+    if (category && pills.includes(category)) setCat(category);
+  }, [category, pills]);
 
   const query = (q ?? "").trim().toLowerCase();
 
   const items = useMemo(() => {
-    let list = PRODUCTS.filter(
+    let list = products.filter(
       (p) =>
         (cat === "All" || p.category === cat) &&
         p.price <= maxPrice &&
-        (query === "" || p.name.toLowerCase().includes(query))
+        (query === "" || p.name.toLowerCase().includes(query)),
     );
     if (sort === "price-asc") list = [...list].sort((a, b) => a.price - b.price);
     if (sort === "price-desc") list = [...list].sort((a, b) => b.price - a.price);
     if (sort === "popular") list = [...list].sort((a, b) => b.reviews - a.reviews);
     return list;
-  }, [cat, maxPrice, sort, query]);
+  }, [products, cat, maxPrice, sort, query]);
 
   const isFiltered = cat !== "All" || maxPrice < MAX_PRICE || query !== "";
 
@@ -101,20 +119,16 @@ function Products() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/15" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/25" />
 
-        <motion.div
-          {...reveal}
-          className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8"
-        >
+        <motion.div {...reveal} className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8">
           <div className="max-w-2xl text-white">
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-primary">
               Shop
             </p>
-            <h1 className="text-4xl font-semibold md:text-6xl">
-              All accessories
-            </h1>
+            <h1 className="text-4xl font-semibold md:text-6xl">All accessories</h1>
             <p className="mt-4 max-w-xl text-lg leading-relaxed text-white/90">
-              Twelve products, hand-picked. Filter by category, price or sort to
-              find your fit.
+              {/* Counted from the catalogue so the copy cannot drift from the CMS. */}
+              {products.length} products, hand-picked. Filter by category, price or sort to find
+              your fit.
             </p>
           </div>
         </motion.div>
@@ -149,7 +163,7 @@ function Products() {
                   Category
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {CATEGORIES.map((c) => (
+                  {pills.map((c) => (
                     <button
                       key={c}
                       type="button"
@@ -179,16 +193,16 @@ function Products() {
                 </div>
                 <input
                   type="range"
-                  min={1000}
+                  min={MIN_PRICE}
                   max={MAX_PRICE}
-                  step={500}
+                  step={PRICE_STEP}
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                   aria-label="Maximum price"
                   className="w-full accent-[var(--primary)]"
                 />
                 <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
-                  <span>{formatINR(1000)}</span>
+                  <span>{formatINR(MIN_PRICE)}</span>
                   <span>{formatINR(MAX_PRICE)}</span>
                 </div>
               </div>
@@ -220,9 +234,7 @@ function Products() {
           <div>
             <div className="mb-6 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">
-                  {items.length}
-                </span>{" "}
+                <span className="font-semibold text-foreground">{items.length}</span>{" "}
                 {items.length === 1 ? "product" : "products"}
                 {cat !== "All" && (
                   <>
@@ -241,12 +253,9 @@ function Products() {
                 <div className="grid h-16 w-16 place-items-center rounded-2xl bg-primary/10 text-primary">
                   <PackageOpen className="h-7 w-7" />
                 </div>
-                <p className="mt-6 text-xl font-semibold">
-                  No products match these filters
-                </p>
+                <p className="mt-6 text-xl font-semibold">No products match these filters</p>
                 <p className="mt-2 max-w-sm text-muted-foreground">
-                  Try widening your price range or choosing a different
-                  category.
+                  Try widening your price range or choosing a different category.
                 </p>
                 <button
                   type="button"

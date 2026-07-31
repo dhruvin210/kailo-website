@@ -2,18 +2,24 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, ShoppingBag, X, Heart, Search } from "lucide-react";
 import { Logo } from "./Logo";
+import { CmsLink } from "./CmsLink";
 import { useCart } from "@/lib/cart";
+import { useGlobal } from "@/lib/site";
 import { getWishlist, WISHLIST_EVENT } from "@/lib/wishlist";
 
-const LINKS = [
-  { to: "/", label: "Home" },
-  { to: "/about", label: "About Us" },
-  { to: "/products", label: "Products" },
-  { to: "/gallery", label: "Gallery" },
-  { to: "/contact", label: "Contact Us" },
-] as const;
+/** Used when `global.navLinks` is unavailable, so the nav never disappears. */
+const FALLBACK_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/about", label: "About Us" },
+  { href: "/products", label: "Products" },
+  { href: "/gallery", label: "Gallery" },
+  { href: "/contact", label: "Contact Us" },
+];
 
 export function Navbar() {
+  const global = useGlobal();
+  const links = global?.navLinks?.length ? global.navLinks : FALLBACK_LINKS;
+
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -73,14 +79,14 @@ export function Navbar() {
         <Logo />
 
         <nav className="ml-auto hidden items-center gap-8 md:flex">
-          {LINKS.map((l) => {
+          {links.map((l) => {
             const active =
-              l.to === "/" ? location.pathname === "/" : location.pathname.startsWith(l.to);
+              l.href === "/" ? location.pathname === "/" : location.pathname.startsWith(l.href);
 
             return (
-              <Link
-                key={l.to}
-                to={l.to}
+              <CmsLink
+                key={l.href}
+                href={l.href}
                 className={`group relative text-sm transition-colors hover:text-primary ${
                   active ? "font-semibold text-foreground" : "font-medium text-muted-foreground"
                 }`}
@@ -92,7 +98,7 @@ export function Navbar() {
                     active ? "scale-x-100" : ""
                   }`}
                 />
-              </Link>
+              </CmsLink>
             );
           })}
         </nav>
@@ -180,14 +186,14 @@ export function Navbar() {
       {open && (
         <div className="border-t border-border bg-white md:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col px-4 py-4 sm:px-6">
-            {LINKS.map((l) => (
-              <Link
-                key={l.to}
-                to={l.to}
+            {links.map((l) => (
+              <CmsLink
+                key={l.href}
+                href={l.href}
                 className="rounded-lg px-3 py-3 text-base font-medium text-foreground hover:bg-muted"
               >
                 {l.label}
-              </Link>
+              </CmsLink>
             ))}
 
             <Link

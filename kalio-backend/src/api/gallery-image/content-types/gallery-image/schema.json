@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "gallery_images",
+  "info": {
+    "singularName": "gallery-image",
+    "pluralName": "gallery-images",
+    "displayName": "Gallery Image",
+    "description": "The /gallery masonry grid. Mirrors kalio-frontend/src/routes/gallery.tsx."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"]
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": ["Products", "Lifestyle", "Events"],
+      "required": true,
+      "description": "\"All\" is a UI-only filter and is deliberately not stored."
+    },
+    "alt": {
+      "type": "string"
+    },
+    "caption": {
+      "type": "string"
+    },
+    "order": {
+      "type": "integer",
+      "default": 0,
+      "description": "Ascending display order. Sort with ?sort=order:asc."
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "collectionName": "components_about_materials",
+  "info": {
+    "displayName": "Material",
+    "description": "One card in the About \"Materials\" band — a fabric or hide Kailo builds in.",
+    "icon": "layer"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "meta": {
+      "type": "string",
+      "description": "The small line under the name, e.g. \"Full-grain · hand-stitched\"."
+    },
+    "body": {
+      "type": "text",
+      "required": true
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    }
+  }
+}

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { formatINR, type Product } from "@/lib/products";
+import { SIZES } from "@/lib/strapi";
 import { useCart } from "@/lib/cart";
 import { getWishlist, toggleWishlist as persistWishlist, WISHLIST_EVENT } from "@/lib/wishlist";
 
@@ -41,6 +42,8 @@ export function ProductCard({ product }: { product: Product }) {
       >
         <img
           src={product.image}
+          srcSet={product.imageSrcSet}
+          sizes={SIZES.productCard}
           alt={product.name}
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -66,9 +69,7 @@ export function ProductCard({ product }: { product: Product }) {
         >
           <Heart
             className={`h-5 w-5 transition ${
-              isFavourite
-                ? "fill-red-500 text-red-500"
-                : "text-gray-500"
+              isFavourite ? "fill-red-500 text-red-500" : "text-gray-500"
             }`}
           />
         </button>
@@ -89,14 +90,10 @@ export function ProductCard({ product }: { product: Product }) {
           {product.name}
         </Link>
 
-        <p className="mt-1 text-xs text-muted-foreground">
-          {product.category}
-        </p>
+        <p className="mt-1 text-xs text-muted-foreground">{product.category}</p>
 
         <div className="mt-3 flex items-center justify-between">
-          <span className="text-lg font-semibold text-foreground">
-            {formatINR(product.price)}
-          </span>
+          <span className="text-lg font-semibold text-foreground">{formatINR(product.price)}</span>
 
           <button
             type="button"

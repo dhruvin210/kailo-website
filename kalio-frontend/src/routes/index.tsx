@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import {
   ArrowRight,
@@ -9,204 +9,69 @@ import {
   Expand,
   MapPin,
   Quote,
-  ShoppingBag,
   Sparkles,
   Star,
 } from "lucide-react";
-import { toast } from "sonner";
 
 import { SiteLayout } from "@/components/SiteLayout";
 import { Lightbox } from "@/components/Lightbox";
+import { CmsLink } from "@/components/CmsLink";
 
-import { useCart } from "@/lib/cart";
-import { PRODUCTS, formatINR, type Product } from "@/lib/products";
-
-import hero1 from "@/assets/gallery/hero1.png";
-import hero2 from "@/assets/gallery/hero2.png";
-import hero3 from "@/assets/gallery/hero3.png";
-import hero4 from "@/assets/gallery/hero4.png";
-
-import storyImage from "@/assets/gallery/photo07.jpeg";
-import artisanImage from "@/assets/lifestyle/artisan.png";
-
-import categoryCases from "@/assets/products/ukulele-case.png";
-import categoryStraps from "@/assets/products/leather-strap.png";
-import categoryTuners from "@/assets/products/clip-tuner.png";
-import categoryPicks from "@/assets/products/pick-set.png";
-import categoryCare from "@/assets/products/cleaning-kit.png";
-
-import gallery1 from "@/assets/gallery/gallery1.jpeg";
-import gallery2 from "@/assets/gallery/photo21.jpeg";
-import gallery3 from "@/assets/gallery/gallery3.jpeg";
-import gallery4 from "@/assets/gallery/gallery4.jpeg";
-import gallery5 from "@/assets/gallery/gallery5.jpeg";
-import gallery6 from "@/assets/gallery/gallery6.jpeg";
+import { homePageQuery, type HomePage } from "@/lib/queries";
+import { mediaAlt, mediaSrcSet, mediaUrl, SIZES } from "@/lib/strapi";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Kailo — Premium Instrument Accessories" },
-      {
-        name: "description",
-        content:
-          "Crafted with finesse, made to move your soul. Handmade leather ukulele bags, straps, tuners and care kits for musicians who carry their music with pride.",
-      },
-      { property: "og:title", content: "Kailo — Premium Instrument Accessories" },
-      {
-        property: "og:description",
-        content: "Crafted with finesse, made to move your soul.",
-      },
-      { property: "og:image", content: hero1 },
-      { property: "og:url", content: "/" },
-    ],
-    // The first hero frame is the LCP element; React preloads it from the
-    // eager/high-priority <img> in <Hero />.
-    links: [{ rel: "canonical", href: "/" }],
-  }),
+  loader: async ({ context }) => {
+    const home = await context.queryClient.ensureQueryData(homePageQuery());
+    return { home };
+  },
+  head: ({ loaderData }) => {
+    const seo = loaderData?.home.seo;
+    const firstSlide = loaderData?.home.heroSlides?.[0];
+
+    const title = seo?.metaTitle ?? "Kailo — Premium Instrument Accessories";
+    const description =
+      seo?.metaDescription ??
+      "Crafted with finesse, made to move your soul. Handmade leather ukulele bags and hand-stitched straps for musicians who carry their music with pride.";
+    // The hero's first frame is the fallback share image, as it was before the CMS.
+    const ogImage = mediaUrl(seo?.ogImage) || mediaUrl(firstSlide?.image);
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        ...(ogImage ? [{ property: "og:image", content: ogImage }] : []),
+        { property: "og:url", content: "/" },
+      ],
+      // The first hero frame is the LCP element; React preloads it from the
+      // eager/high-priority <img> in <Hero />.
+      links: [{ rel: "canonical", href: seo?.canonicalUrl ?? "/" }],
+    };
+  },
   component: Home,
 });
 
 /* ──────────────────────────── CONTENT ──────────────────────────── */
 
-const heroSlides = [
-  {
-    image: hero1,
-    // Focal point keeps the musicians in frame as the crop tightens.
-    position: "50% 58%",
-    alt: "Three friends in a Goa garden with handcrafted Kailo instrument bags",
-  },
-  {
-    image: hero2,
-    position: "55% 50%",
-    alt: "A woman by the river leaning on a tree with a red leather Kailo ukulele bag",
-  },
-  {
-    image: hero3,
-    position: "50% 52%",
-    alt: "A musician in a bamboo grove carrying a brown leather Kailo instrument bag",
-  },
-  {
-    image: hero4,
-    position: "50% 58%",
-    alt: "A musician on garden steps with a black Kailo ukulele bag",
-  },
-];
+/**
+ * CMS text with the pre-CMS copy as its fallback.
+ *
+ * Applied to the short, layout-bearing strings — eyebrows, headings, button labels
+ * — where an empty field would leave a visible hole. Body paragraphs are rendered
+ * as-is; a missing one simply collapses.
+ */
+const text = (value: string | null | undefined, fallback: string) => value?.trim() || fallback;
 
-const heroStats = [
-  { value: "4.9", label: "Average rating" },
-  { value: "2,400+", label: "Musicians served" },
-  { value: "40+", label: "Countries shipped" },
-];
-
-const spiritChips = ["Full-grain leather", "Hand-stitched", "Ships worldwide"];
-
-const categories = [
-  {
-    name: "Cases",
-    category: "Cases",
-    tagline: "Protect every note",
-    image: categoryCases,
-    position: "60% center",
-    feature: true,
-  },
-  {
-    name: "Straps",
-    category: "Straps",
-    tagline: "Carry with pride",
-    image: categoryStraps,
-    position: "center center",
-    feature: false,
-  },
-  {
-    name: "Tuners",
-    category: "Tuners",
-    tagline: "Always in key",
-    image: categoryTuners,
-    position: "center center",
-    feature: false,
-  },
-  {
-    name: "Picks",
-    category: "Picks",
-    tagline: "The finishing touch",
-    image: categoryPicks,
-    position: "center center",
-    feature: false,
-  },
-  {
-    name: "Care Kits",
-    category: "Cleaning Kits",
-    tagline: "Keep it singing",
-    image: categoryCare,
-    position: "center center",
-    feature: false,
-  },
-];
-
-const galleryTiles = [
-  { src: gallery1, alt: "A Kailo ukulele bag on the road", tall: true },
-  { src: gallery2, alt: "A musician tuning up before a set", tall: false },
-  { src: gallery3, alt: "Behind the scenes at a Kailo workshop", tall: false },
-  { src: gallery4, alt: "A performance lit by evening light", tall: true },
-  { src: gallery5, alt: "Hand-stitched leather detailing", tall: false },
-  { src: gallery6, alt: "Friends playing together outdoors", tall: false },
-];
-
-/** The four most-reviewed products stand in for our best sellers. */
-const bestSellers: Product[] = [...PRODUCTS].sort((a, b) => b.reviews - a.reviews).slice(0, 4);
-
-const testimonials = [
-  {
-    initials: "AM",
-    name: "Aria Mendes",
-    role: "Session guitarist",
-    location: "Lisbon, Portugal",
-    rating: 5,
-    quote:
-      "The leather strap broke in beautifully within a week. It feels like it was made for my shoulder.",
-  },
-  {
-    initials: "DK",
-    name: "Devon Kaur",
-    role: "Touring ukulele player",
-    location: "Melbourne, Australia",
-    rating: 5,
-    quote:
-      "My ukulele case survived three flights without a scratch. Kailo just gets touring life.",
-  },
-  {
-    initials: "PS",
-    name: "Priya Suresh",
-    role: "Studio producer",
-    location: "Chennai, India",
-    rating: 5,
-    quote: "Gorgeous materials and thoughtful details. It is rare to find gear this considered.",
-  },
-  {
-    initials: "MF",
-    name: "Milo Ferreira",
-    role: "Violinist, chamber quartet",
-    location: "São Paulo, Brazil",
-    rating: 5,
-    quote: "Twelve cities in five weeks and the carbon shell still closes like the day it arrived.",
-  },
-  {
-    initials: "HI",
-    name: "Hana Ito",
-    role: "Singer-songwriter",
-    location: "Kyoto, Japan",
-    rating: 5,
-    quote: "Every detail feels intentional — the stitching, the lining, even the way it smells.",
-  },
-  {
-    initials: "NB",
-    name: "Noah Bergman",
-    role: "Bassist",
-    location: "Berlin, Germany",
-    rating: 5,
-    quote: "Three sets a night and my shoulder no longer complains. That alone was worth it.",
-  },
-];
+/** Avatar monogram, when the editor left `initials` blank. */
+const initialsFor = (name: string) =>
+  name
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 3)
+    .join("");
 
 /* ──────────────────────────── MOTION ──────────────────────────── */
 
@@ -231,21 +96,22 @@ const revealItem = (i: number) => ({
 /* ──────────────────────────── PAGE ──────────────────────────── */
 
 function Home() {
+  const { home } = Route.useLoaderData();
+
   return (
     <SiteLayout>
-      <Hero />
-      <KailoSpirit />
-      <ShopByCategory />
-      <OurGallery />
-      <BestSellers />
-      <KindWords />
+      <Hero home={home} />
+      <KailoSpirit home={home} />
+      <ShopByCategory home={home} />
+      <OurGallery home={home} />
+      <KindWords home={home} />
     </SiteLayout>
   );
 }
 
 /* ──────────────────────────── 1. HERO ──────────────────────────── */
 
-function Hero() {
+function Hero({ home }: { home: HomePage }) {
   const heroRef = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
 
@@ -259,29 +125,55 @@ function Hero() {
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
+  const heroSlides = useMemo(
+    () =>
+      (home.heroSlides ?? []).map((slide) => ({
+        src: mediaUrl(slide.image),
+        srcSet: mediaSrcSet(slide.image),
+        alt: mediaAlt(slide.image, slide.alt),
+        // Focal point keeps the subject in frame as the crop tightens.
+        position: slide.position ?? "center center",
+      })),
+    [home.heroSlides],
+  );
+
+  const heroStats = home.heroStats ?? [];
+
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
   const slideCount = heroSlides.length;
 
-  const goTo = useCallback((i: number) => setSlide((i + slideCount) % slideCount), [slideCount]);
+  const goTo = useCallback(
+    (i: number) => {
+      if (slideCount === 0) return;
+      setSlide((i + slideCount) % slideCount);
+    },
+    [slideCount],
+  );
 
   // Auto-advance, unless hovered or the visitor prefers reduced motion.
   useEffect(() => {
-    if (paused || reduceMotion) return;
+    if (paused || reduceMotion || slideCount < 2) return;
     const id = setInterval(() => setSlide((s) => (s + 1) % slideCount), 6500);
     return () => clearInterval(id);
   }, [paused, reduceMotion, slideCount]);
 
-  // Warm the remaining frames once the first one has had a head start.
+  // Warm the remaining frames once the first one has had a head start. The
+  // candidate list is set too, so this fetches the same file the <img> will ask
+  // for rather than pulling the full-size original into cache unused.
   useEffect(() => {
     const id = window.setTimeout(() => {
       heroSlides.slice(1).forEach((s) => {
         const img = new Image();
-        img.src = s.image;
+        if (s.srcSet) {
+          img.sizes = SIZES.fullWidth;
+          img.srcset = s.srcSet;
+        }
+        img.src = s.src;
       });
     }, 1200);
     return () => window.clearTimeout(id);
-  }, []);
+  }, [heroSlides]);
 
   return (
     <section
@@ -314,14 +206,16 @@ function Hero() {
           >
             {heroSlides.map((s, i) => (
               <div
-                key={s.alt}
+                key={`${s.src}-${i}`}
                 role="group"
                 aria-roledescription="slide"
                 aria-label={`${i + 1} of ${slideCount}`}
                 className="h-full w-full shrink-0"
               >
                 <img
-                  src={s.image}
+                  src={s.src}
+                  srcSet={s.srcSet}
+                  sizes={SIZES.fullWidth}
                   alt={s.alt}
                   draggable={false}
                   loading={i === 0 ? "eager" : "lazy"}
@@ -372,7 +266,7 @@ function Hero() {
               className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] backdrop-blur sm:text-xs"
             >
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              Handcrafted in India
+              {text(home.heroEyebrow, "Handcrafted in India")}
             </motion.div>
 
             <motion.h1
@@ -381,9 +275,11 @@ function Hero() {
               transition={{ duration: 0.7, delay: 0.05, ease: EASE }}
               className="text-[2.5rem] font-semibold leading-[1.12] sm:text-5xl lg:text-6xl xl:text-7xl"
             >
-              Crafted with finesse,
+              {text(home.heroHeadingLine1, "Crafted with finesse,")}
               <br />
-              <span className="italic text-primary">made to move your soul</span>
+              <span className="italic text-primary">
+                {text(home.heroHeadingLine2, "made to move your soul")}
+              </span>
             </motion.h1>
 
             <motion.p
@@ -392,8 +288,7 @@ function Hero() {
               transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
               className="mt-6 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg"
             >
-              Premium leather ukulele bags and hand-stitched leather &amp; denim straps for artists
-              who carry their music with pride.
+              {home.heroSubtext}
             </motion.p>
 
             <motion.div
@@ -402,20 +297,22 @@ function Hero() {
               transition={{ duration: 0.7, delay: 0.25, ease: EASE }}
               className="mt-9 flex flex-wrap gap-3 sm:gap-4"
             >
-              <Link
-                to="/products"
+              <CmsLink
+                href={home.heroPrimaryCtaHref}
+                fallbackHref="/products"
                 className="group inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-[oklch(0.16_0.02_265)] shadow-lg shadow-black/20 transition hover:bg-primary hover:text-primary-foreground sm:px-8 sm:py-4 sm:text-base"
               >
-                Shop the Collection
+                {text(home.heroPrimaryCtaLabel, "Shop the Collection")}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
+              </CmsLink>
 
-              <a
-                href="#gallery"
+              <CmsLink
+                href={home.heroSecondaryCtaHref}
+                fallbackHref="#gallery"
                 className="inline-flex items-center gap-2 rounded-full border border-white/50 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur transition hover:border-white hover:bg-white/15 sm:px-8 sm:py-4 sm:text-base"
               >
-                Explore the Gallery
-              </a>
+                {text(home.heroSecondaryCtaLabel, "Explore the Gallery")}
+              </CmsLink>
             </motion.div>
 
             <motion.dl
@@ -441,7 +338,7 @@ function Hero() {
       <div className="absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2.5">
         {heroSlides.map((s, i) => (
           <button
-            key={s.alt}
+            key={`${s.src}-${i}`}
             type="button"
             onClick={() => goTo(i)}
             aria-label={`Go to slide ${i + 1}`}
@@ -477,7 +374,9 @@ function Hero() {
 
 /* ─────────────────────── 2. THE KAILO SPIRIT ─────────────────────── */
 
-function KailoSpirit() {
+function KailoSpirit({ home }: { home: HomePage }) {
+  const spiritChips = home.storyChips ?? [];
+
   return (
     <section className="bg-background py-20 sm:py-24 lg:py-28">
       <div className="mx-auto grid max-w-7xl items-center gap-14 px-6 lg:grid-cols-2 lg:gap-20 lg:px-8">
@@ -491,8 +390,10 @@ function KailoSpirit() {
         >
           <div className="overflow-hidden rounded-[2rem] shadow-2xl">
             <img
-              src={storyImage}
-              alt="A handcrafted Kailo leather ukulele bag"
+              src={mediaUrl(home.storyImage)}
+              srcSet={mediaSrcSet(home.storyImage)}
+              sizes={SIZES.editorialHalf}
+              alt={mediaAlt(home.storyImage, "A handcrafted Kailo leather ukulele bag")}
               loading="lazy"
               decoding="async"
               className="aspect-4/5 w-full object-cover"
@@ -500,40 +401,46 @@ function KailoSpirit() {
           </div>
 
           {/* Overlapping workshop frame */}
-          <img
-            src={artisanImage}
-            alt="A Kailo artisan hand-stitching leather at the workbench"
-            loading="lazy"
-            decoding="async"
-            className="absolute -bottom-8 -right-4 hidden aspect-square w-36 rounded-3xl object-cover shadow-2xl ring-4 ring-background sm:block sm:w-44 lg:-right-8 lg:w-52"
-          />
+          {home.storyInsetImage && (
+            <img
+              src={mediaUrl(home.storyInsetImage, "small")}
+              srcSet={mediaSrcSet(home.storyInsetImage)}
+              // Never wider than 13rem, even on desktop.
+              sizes="13rem"
+              alt={mediaAlt(
+                home.storyInsetImage,
+                "A Kailo artisan hand-stitching leather at the workbench",
+              )}
+              loading="lazy"
+              decoding="async"
+              className="absolute -bottom-8 -right-4 hidden aspect-square w-36 rounded-3xl object-cover shadow-2xl ring-4 ring-background sm:block sm:w-44 lg:-right-8 lg:w-52"
+            />
+          )}
 
           {/* Floating stat card */}
           <div className="absolute left-5 top-5 rounded-2xl border border-border bg-card/95 px-5 py-3.5 shadow-xl backdrop-blur">
-            <p className="font-display text-2xl font-semibold text-primary">100%</p>
+            <p className="font-display text-2xl font-semibold text-primary">
+              {text(home.storyStatValue, "100%")}
+            </p>
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-              Hand-finished
+              {text(home.storyStatLabel, "Hand-finished")}
             </p>
           </div>
         </motion.div>
 
         <motion.div {...reveal} className="order-1 lg:order-2">
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-primary">
-            The Kailo Spirit
+            {text(home.storyEyebrow, "The Kailo Spirit")}
           </p>
           <h2 className="text-4xl font-semibold leading-tight md:text-5xl">
-            A touch of island spirit for every artist
+            {text(home.storyHeading, "A touch of island spirit for every artist")}
           </h2>
-          <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-            At Kailo, we create premium leather ukulele bags and handcrafted leather &amp; denim
-            straps designed for artists who carry their music with pride. Thoughtful textures, rich
-            materials, and a touch of island spirit come together to elevate not just your
-            instrument — but your entire journey with it.
-          </p>
-          <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-            Every piece is cut, stitched and finished by hand in small batches, by makers who play
-            as much as they craft.
-          </p>
+          <p className="mt-6 text-lg leading-relaxed text-muted-foreground">{home.storyBody}</p>
+          {home.storyBodySecondary && (
+            <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
+              {home.storyBodySecondary}
+            </p>
+          )}
 
           <div className="mt-8 flex flex-wrap gap-3">
             {spiritChips.map((chip) => (
@@ -546,13 +453,14 @@ function KailoSpirit() {
             ))}
           </div>
 
-          <Link
-            to="/about"
+          <CmsLink
+            href={home.storyCtaHref}
+            fallbackHref="/about"
             className="group mt-10 inline-flex items-center gap-2 text-sm font-semibold text-primary"
           >
-            Read our story
+            {text(home.storyCtaLabel, "Read our story")}
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Link>
+          </CmsLink>
         </motion.div>
       </div>
     </section>
@@ -561,41 +469,48 @@ function KailoSpirit() {
 
 /* ─────────────────────── 3. SHOP BY CATEGORY ─────────────────────── */
 
-function ShopByCategory() {
+function ShopByCategory({ home }: { home: HomePage }) {
+  const categories = home.categoryTiles ?? [];
+
   return (
     <section className="bg-[var(--bg-soft)] py-20 sm:py-24 lg:py-28">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHead
-          eyebrow="Browse"
-          title="Shop by Category"
+          eyebrow={text(home.categoriesEyebrow, "Browse")}
+          title={text(home.categoriesHeading, "Shop by Category")}
           action={{ to: "/products", label: "View all products" }}
         />
 
-        {/* Bento on desktop, two-up grid on smaller screens. */}
-        <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:h-[560px] lg:grid-cols-4 lg:grid-rows-2">
+        {/* Bento on desktop — the feature tile takes two of three columns, the rest
+            stack beside it — and a two-up grid on smaller screens. */}
+        <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:h-[560px] lg:grid-cols-3 lg:grid-rows-2">
           {categories.map((category, i) => (
             <motion.div
               key={category.name}
               {...revealItem(i)}
               className={category.feature ? "col-span-2 lg:row-span-2 lg:h-full" : "lg:h-full"}
             >
-              <Link
-                to="/products"
-                search={{ category: category.category }}
-                className="group relative flex h-full overflow-hidden rounded-3xl bg-card shadow-sm transition-shadow duration-500 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
+              <CategoryTileLink category={category}>
                 <img
-                  src={category.image}
-                  alt={category.name}
+                  src={mediaUrl(category.image)}
+                  srcSet={mediaSrcSet(category.image)}
+                  sizes={category.feature ? SIZES.categoryFeature : SIZES.categoryTile}
+                  alt={mediaAlt(category.image, category.name)}
                   loading="lazy"
                   decoding="async"
-                  style={{ objectPosition: category.position }}
+                  style={{ objectPosition: category.position ?? "center center" }}
                   className={`w-full object-cover transition-transform duration-700 group-hover:scale-105 lg:h-full lg:aspect-auto ${
                     category.feature ? "aspect-16/10" : "aspect-square"
                   }`}
                 />
 
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 via-45% to-transparent" />
+
+                {category.comingSoon && (
+                  <span className="pointer-events-none absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-foreground shadow-sm backdrop-blur sm:left-5 sm:top-5">
+                    Coming soon
+                  </span>
+                )}
 
                 <div className="pointer-events-none absolute inset-x-4 bottom-4 text-white sm:inset-x-5 sm:bottom-5">
                   <p className="text-[10px] uppercase tracking-[0.2em] text-white/85 sm:text-xs">
@@ -614,7 +529,7 @@ function ShopByCategory() {
                     </span>
                   </div>
                 </div>
-              </Link>
+              </CategoryTileLink>
             </motion.div>
           ))}
         </div>
@@ -623,10 +538,60 @@ function ShopByCategory() {
   );
 }
 
+const TILE_CLASS =
+  "group relative flex h-full overflow-hidden rounded-3xl bg-card shadow-sm transition-shadow duration-500 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2";
+
+/**
+ * A bento tile's link.
+ *
+ * The usual case is a deep link into the shop with the category pre-selected, which
+ * goes through the typed `Link` so the search param stays validated. A tile pointed
+ * somewhere else entirely falls back to the generic CMS link.
+ */
+function CategoryTileLink({
+  category,
+  children,
+}: {
+  category: NonNullable<HomePage["categoryTiles"]>[number];
+  children: React.ReactNode;
+}) {
+  const href = category.href?.trim() || "/products";
+
+  if (href === "/products") {
+    return (
+      <Link
+        to="/products"
+        search={category.categoryFilter ? { category: category.categoryFilter } : {}}
+        className={TILE_CLASS}
+      >
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <CmsLink href={href} className={TILE_CLASS}>
+      {children}
+    </CmsLink>
+  );
+}
+
 /* ─────────────────────── 4. OUR GALLERY ─────────────────────── */
 
-function OurGallery() {
+function OurGallery({ home }: { home: HomePage }) {
   const [open, setOpen] = useState<number | null>(null);
+
+  const galleryTiles = useMemo(
+    () =>
+      (home.homeGallery ?? []).map((tile) => ({
+        src: mediaUrl(tile.image),
+        srcSet: mediaSrcSet(tile.image),
+        alt: mediaAlt(tile.image, tile.alt),
+        tall: tile.tall,
+      })),
+    [home.homeGallery],
+  );
+
   const total = galleryTiles.length;
 
   const close = useCallback(() => setOpen(null), []);
@@ -641,16 +606,16 @@ function OurGallery() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {/* The full-gallery link lives under the grid, so no header action here. */}
         <SectionHead
-          eyebrow="Moments"
-          title="Our Gallery"
-          description="Products, musicians, workshops, events and the moments in between."
+          eyebrow={text(home.galleryEyebrow, "Moments")}
+          title={text(home.galleryHeading, "Our Gallery")}
+          description={home.galleryDescription ?? undefined}
         />
 
         {/* Asymmetric grid — two tall frames anchor the row on desktop. */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:h-[640px] lg:grid-cols-4 lg:grid-rows-2">
           {galleryTiles.map((tile, i) => (
             <motion.button
-              key={tile.src}
+              key={`${tile.src}-${i}`}
               type="button"
               onClick={() => setOpen(i)}
               aria-label={`Open image ${i + 1} of ${total}`}
@@ -661,6 +626,8 @@ function OurGallery() {
             >
               <img
                 src={tile.src}
+                srcSet={tile.srcSet}
+                sizes={SIZES.galleryTile}
                 alt={tile.alt}
                 loading="lazy"
                 decoding="async"
@@ -688,7 +655,7 @@ function OurGallery() {
       </div>
 
       <AnimatePresence>
-        {open !== null && (
+        {open !== null && galleryTiles[open] && (
           <Lightbox
             src={galleryTiles[open].src}
             alt={galleryTiles[open].alt}
@@ -704,112 +671,10 @@ function OurGallery() {
   );
 }
 
-/* ─────────────────────── 5. OUR BEST SELLERS ─────────────────────── */
+/* ─────────────────────── 5. KIND WORDS ─────────────────────── */
 
-function BestSellers() {
-  return (
-    <section className="bg-[var(--bg-soft)] py-20 sm:py-24 lg:py-28">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <SectionHead
-          eyebrow="Loved by artists"
-          title="Our Best Sellers"
-          description="The pieces musicians keep coming back for."
-          action={{ to: "/products", label: "Shop all" }}
-        />
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-          {bestSellers.map((product, i) => (
-            <motion.div key={product.id} {...revealItem(i)} className="h-full">
-              <BestSellerCard product={product} />
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function BestSellerCard({ product }: { product: Product }) {
-  const { add } = useCart();
-
-  return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl">
-      <Link
-        to="/products/$id"
-        params={{ id: product.id }}
-        className="relative block overflow-hidden bg-muted"
-      >
-        <img
-          src={product.image}
-          alt={product.name}
-          loading="lazy"
-          decoding="async"
-          className="aspect-4/3 w-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
-
-        <span className="absolute left-3 top-3 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground shadow-sm">
-          Bestseller
-        </span>
-      </Link>
-
-      <div className="flex flex-1 flex-col p-5">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Star className="h-3.5 w-3.5 fill-primary text-primary" />
-          <span className="font-semibold text-foreground">{product.rating}</span>
-          <span>({product.reviews} reviews)</span>
-        </div>
-
-        <h3 className="mt-2 text-lg font-semibold leading-snug">
-          <Link
-            to="/products/$id"
-            params={{ id: product.id }}
-            className="transition-colors hover:text-primary"
-          >
-            {product.name}
-          </Link>
-        </h3>
-
-        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-          {product.description}
-        </p>
-
-        {/* Pushed down so prices and CTAs line up across cards of any title length. */}
-        <p className="mt-auto pt-4 font-display text-xl font-semibold text-foreground">
-          {formatINR(product.price)}
-        </p>
-
-        <div className="mt-4 flex items-center gap-2">
-          <Link
-            to="/products/$id"
-            params={{ id: product.id }}
-            className="group/cta inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-[var(--primary-dark)]"
-          >
-            View Product
-            <ArrowRight className="h-4 w-4 transition-transform group-hover/cta:translate-x-1" />
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => {
-              add(product.id);
-              toast.success(`${product.name} added to cart`, {
-                closeButton: true,
-              });
-            }}
-            aria-label={`Add ${product.name} to cart`}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border text-foreground transition-colors hover:border-primary hover:text-primary"
-          >
-            <ShoppingBag className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-/* ─────────────────────── 6. KIND WORDS ─────────────────────── */
-
-function KindWords() {
+function KindWords({ home }: { home: HomePage }) {
+  const testimonials = home.testimonials ?? [];
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
@@ -832,15 +697,18 @@ function KindWords() {
   };
 
   return (
-    <section className="bg-background py-20 sm:py-24 lg:py-28">
+    // Soft ground, so this alternates against the gallery section above it.
+    <section className="bg-[var(--bg-soft)] py-20 sm:py-24 lg:py-28">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <motion.div {...reveal} className="mb-12 text-center">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-primary">
-            Testimonials
+            {text(home.testimonialsEyebrow, "Testimonials")}
           </p>
-          <h2 className="text-4xl font-semibold md:text-5xl">Kind Words</h2>
+          <h2 className="text-4xl font-semibold md:text-5xl">
+            {text(home.testimonialsHeading, "Kind Words")}
+          </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-            Trusted on stages worldwide.
+            {home.testimonialsDescription}
           </p>
         </motion.div>
 
@@ -872,15 +740,17 @@ function KindWords() {
                     aria-hidden="true"
                     className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-[var(--primary-dark)] font-display text-sm font-semibold text-primary-foreground"
                   >
-                    {t.initials}
+                    {t.initials?.trim() || initialsFor(t.name)}
                   </span>
                   <div className="min-w-0">
                     <p className="font-semibold">{t.name}</p>
                     <p className="text-sm text-muted-foreground">{t.role}</p>
-                    <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="h-3 w-3 text-primary" />
-                      {t.location}
-                    </p>
+                    {t.location && (
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3 text-primary" />
+                        {t.location}
+                      </p>
+                    )}
                   </div>
                 </figcaption>
               </figure>

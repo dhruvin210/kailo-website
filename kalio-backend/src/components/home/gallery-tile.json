@@ -1,0 +1,26 @@
+{
+  "collectionName": "components_home_gallery_tiles",
+  "info": {
+    "displayName": "Gallery tile",
+    "description": "One frame of the homepage \"Our Gallery\" grid. Separate from the Gallery Image collection because these picks carry their own layout flag.",
+    "icon": "landscape"
+  },
+  "options": {},
+  "attributes": {
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"]
+    },
+    "alt": {
+      "type": "string",
+      "required": true
+    },
+    "tall": {
+      "type": "boolean",
+      "default": false,
+      "description": "Spans two rows on desktop."
+    }
+  }
+}

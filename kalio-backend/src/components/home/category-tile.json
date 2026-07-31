@@ -1,0 +1,47 @@
+{
+  "collectionName": "components_home_category_tiles",
+  "info": {
+    "displayName": "Category tile",
+    "description": "A tile in the homepage \"Shop by Category\" bento grid.",
+    "icon": "grid"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "tagline": {
+      "type": "string",
+      "required": true
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"]
+    },
+    "href": {
+      "type": "string",
+      "default": "/products"
+    },
+    "categoryFilter": {
+      "type": "string",
+      "description": "Value appended as ?category=… — must match a Category `name` exactly."
+    },
+    "position": {
+      "type": "string",
+      "default": "center center"
+    },
+    "feature": {
+      "type": "boolean",
+      "default": false,
+      "description": "Renders double-width as the anchor tile of the bento grid."
+    },
+    "comingSoon": {
+      "type": "boolean",
+      "default": false,
+      "description": "Marks the tile \"Coming soon\". It stays clickable — the listing is simply empty until the category has products."
+    }
+  }
+}

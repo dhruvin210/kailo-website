@@ -1,0 +1,29 @@
+{
+  "collectionName": "components_shared_ctas",
+  "info": {
+    "displayName": "CTA",
+    "description": "A call-to-action block with up to two buttons.",
+    "icon": "cursor"
+  },
+  "options": {},
+  "attributes": {
+    "heading": {
+      "type": "string"
+    },
+    "body": {
+      "type": "text"
+    },
+    "buttonLabel": {
+      "type": "string"
+    },
+    "buttonHref": {
+      "type": "string"
+    },
+    "secondaryButtonLabel": {
+      "type": "string"
+    },
+    "secondaryButtonHref": {
+      "type": "string"
+    }
+  }
+}
