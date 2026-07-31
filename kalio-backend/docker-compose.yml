@@ -1,0 +1,34 @@
+# Local PostgreSQL for the Kailo CMS.
+#
+#   docker compose up -d      start
+#   docker compose logs -f db follow
+#   docker compose down       stop (data survives)
+#   docker compose down -v    stop and wipe the database
+#
+# The credentials match the defaults in .env.example, so `npm run develop`
+# connects with no further configuration. If you already run Postgres locally,
+# skip this file entirely and point DATABASE_* at your instance instead.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kailo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-kailo}
+      POSTGRES_USER: ${DATABASE_USERNAME:-kailo}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-change_me}
+    ports:
+      # Host 5432 is often taken by a native Postgres install. Override with
+      # DATABASE_PORT in .env if this clashes.
+      - '${DATABASE_PORT:-5432}:5432'
+    volumes:
+      - kailo-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USERNAME:-kailo} -d ${DATABASE_NAME:-kailo}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  kailo-pgdata:

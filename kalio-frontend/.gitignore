@@ -1,0 +1,9 @@
+# Local env files hold the CMS origin (and later, tokens). The example is the
+# committed documentation.
+.env
+.env.*
+!.env.example
+
+# TanStack Start dev-server scratch. The root .gitignore's `.tanstack/**` is
+# anchored to the repo root, so it never matched this one.
+.tanstack/

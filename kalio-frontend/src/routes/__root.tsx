@@ -12,8 +12,11 @@ import { type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { CartProvider } from "../lib/cart";
 import { Toaster } from "../components/ui/sonner";
+import { categoriesQuery, globalQuery } from "../lib/queries";
+import type { StrapiCategory } from "../lib/normalize";
+import type { GlobalSettings } from "../lib/queries";
 
-function NotFoundComponent() {
+export function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -35,7 +38,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+export function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
 
@@ -70,7 +73,33 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+/**
+ * Navbar and Footer render on every page, so the site-wide settings they need are
+ * loaded once here and read back through `useGlobal()` / `useFooterCategories()`.
+ *
+ * Both reads are deliberately non-fatal. If the CMS is unreachable the chrome falls
+ * back to its hardcoded content rather than taking down every route with it — a
+ * content route's own loader is what surfaces the error UI.
+ */
+const loadChrome = async (queryClient: QueryClient) => {
+  const [global, categories] = await Promise.all([
+    queryClient.ensureQueryData(globalQuery()).catch((error: unknown) => {
+      console.error("[cms] global settings unavailable, using fallbacks", error);
+      return null;
+    }),
+    queryClient.ensureQueryData(categoriesQuery()).catch(() => null),
+  ]);
+
+  return { global, categories };
+};
+
+export type ChromeData = {
+  global: GlobalSettings | null;
+  categories: StrapiCategory[] | null;
+};
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  loader: ({ context }): Promise<ChromeData> => loadChrome(context.queryClient),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -78,12 +107,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Kailo — Premium Instrument Accessories" },
       {
         name: "description",
-        content: "Crafted with finesse, made to move your soul. Premium cases, straps, tuners and care kits for musicians.",
+        content:
+          "Crafted with finesse, made to move your soul. Premium cases, straps, tuners and care kits for musicians.",
       },
       { property: "og:title", content: "Kailo — Premium Instrument Accessories" },
       {
         property: "og:description",
-        content: "Crafted with finesse, made to move your soul. Premium cases, straps, tuners and care kits for musicians.",
+        content:
+          "Crafted with finesse, made to move your soul. Premium cases, straps, tuners and care kits for musicians.",
       },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Kailo" },
@@ -91,7 +122,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "Kailo — Premium Instrument Accessories" },
       {
         name: "twitter:description",
-        content: "Crafted with finesse, made to move your soul. Premium cases, straps, tuners and care kits for musicians.",
+        content:
+          "Crafted with finesse, made to move your soul. Premium cases, straps, tuners and care kits for musicians.",
       },
     ],
     links: [{ rel: "stylesheet", href: appCss }],

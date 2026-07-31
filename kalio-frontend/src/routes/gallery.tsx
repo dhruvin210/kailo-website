@@ -4,45 +4,14 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { SiteLayout } from "@/components/SiteLayout";
 import { Lightbox } from "@/components/Lightbox";
+import { galleryQuery } from "@/lib/queries";
+import { SIZES } from "@/lib/strapi";
 
-import photo01 from "@/assets/gallery/photo01.jpeg";
-import photo02 from "@/assets/gallery/photo02.jpeg";
-import photo03 from "@/assets/gallery/photo03.jpeg";
-import photo04 from "@/assets/gallery/photo04.jpeg";
-import photo05 from "@/assets/gallery/photo05.jpeg";
-import photo06 from "@/assets/gallery/photo06.jpeg";
-import photo07 from "@/assets/gallery/photo07.jpeg";
-import photo08 from "@/assets/gallery/photo08.jpeg";
-import photo09 from "@/assets/gallery/photo09.jpeg";
-import photo10 from "@/assets/gallery/photo10.jpeg";
-import photo11 from "@/assets/gallery/photo11.jpeg";
-import photo12 from "@/assets/gallery/photo12.jpeg";
-import photo13 from "@/assets/gallery/photo13.jpeg";
-import photo14 from "@/assets/gallery/photo14.jpeg";
-import photo15 from "@/assets/gallery/photo15.jpeg";
-import photo16 from "@/assets/gallery/photo16.jpeg";
-import photo17 from "@/assets/gallery/photo17.jpeg";
-import photo18 from "@/assets/gallery/photo18.jpeg";
-import photo19 from "@/assets/gallery/photo19.jpeg";
-import photo20 from "@/assets/gallery/photo20.jpeg";
-import photo21 from "@/assets/gallery/photo21.jpeg";
-import photo22 from "@/assets/gallery/photo22.jpeg";
-import photo23 from "@/assets/gallery/photo23.jpeg";
-import photo24 from "@/assets/gallery/photo24.jpeg";
-
-// AI-generated, on-brand Kailo photography
-import aiUkuleleCase from "@/assets/products/ukulele-case.png";
-import aiViolinCase from "@/assets/products/violin-case.png";
-import aiLeatherStrap from "@/assets/products/leather-strap.png";
-import aiClipTuner from "@/assets/products/clip-tuner.png";
-import aiPickSet from "@/assets/products/pick-set.png";
-import aiCleaningKit from "@/assets/products/cleaning-kit.png";
+// The page's own hero has no CMS home — see "Known gaps" in the backend README.
 import aiRestringing from "@/assets/lifestyle/restringing.png";
-import aiUkuleleWindow from "@/assets/lifestyle/ukulele-window.png";
-import aiWorkbench from "@/assets/lifestyle/workbench.png";
-import aiArtisan from "@/assets/lifestyle/artisan.png";
 
 export const Route = createFileRoute("/gallery")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(galleryQuery()),
   head: () => ({
     meta: [
       { title: "Gallery — Kailo" },
@@ -60,44 +29,9 @@ export const Route = createFileRoute("/gallery")({
 });
 
 type Cat = "All" | "Products" | "Lifestyle" | "Events";
-const CATS: Cat[] = ["All", "Products", "Lifestyle", "Events"];
 
-const IMAGES: { src: string; cat: Exclude<Cat, "All"> }[] = [
-  // Featured AI-generated Kailo photography
-  { src: aiUkuleleCase, cat: "Products" },
-  { src: aiLeatherStrap, cat: "Products" },
-  { src: aiArtisan, cat: "Lifestyle" },
-  { src: aiViolinCase, cat: "Products" },
-  { src: aiWorkbench, cat: "Lifestyle" },
-  { src: aiPickSet, cat: "Products" },
-  { src: aiUkuleleWindow, cat: "Lifestyle" },
-  { src: aiClipTuner, cat: "Products" },
-  { src: aiCleaningKit, cat: "Products" },
-  { src: photo01, cat: "Events" },
-  { src: photo15, cat: "Products" },
-  { src: photo02, cat: "Lifestyle" },
-  { src: photo03, cat: "Lifestyle" },
-  { src: photo04, cat: "Lifestyle" },
-  { src: photo05, cat: "Lifestyle" },
-  { src: photo06, cat: "Lifestyle" },
-  { src: photo07, cat: "Lifestyle" },
-  { src: photo08, cat: "Lifestyle" },
-  { src: photo09, cat: "Lifestyle" },
-  { src: photo10, cat: "Lifestyle" },
-  { src: photo11, cat: "Lifestyle" },
-  { src: photo12, cat: "Lifestyle" },
-  { src: photo13, cat: "Lifestyle" },
-  { src: photo14, cat: "Lifestyle" },
-  { src: photo16, cat: "Lifestyle" },
-  { src: photo17, cat: "Events" },
-  { src: photo18, cat: "Events" },
-  { src: photo19, cat: "Lifestyle" },
-  { src: photo20, cat: "Lifestyle" },
-  { src: photo21, cat: "Lifestyle" },
-  { src: photo22, cat: "Lifestyle" },
-  { src: photo23, cat: "Lifestyle" },
-  { src: photo24, cat: "Lifestyle" },
-];
+/** `"All"` is a UI-only pill; the CMS deliberately stores only the other three. */
+const CATS: Cat[] = ["All", "Products", "Lifestyle", "Events"];
 
 /** Shared scroll-reveal defaults — matches the homepage. */
 const reveal = {
@@ -108,10 +42,11 @@ const reveal = {
 };
 
 function Gallery() {
+  const images = Route.useLoaderData();
   const [cat, setCat] = useState<Cat>("All");
   const [open, setOpen] = useState<number | null>(null);
 
-  const filtered = IMAGES.filter((i) => cat === "All" || i.cat === cat);
+  const filtered = images.filter((i) => cat === "All" || i.cat === cat);
   const count = filtered.length;
 
   const close = useCallback(() => setOpen(null), []);
@@ -173,7 +108,7 @@ function Gallery() {
           <div className="columns-1 gap-4 sm:columns-2 md:columns-3 lg:columns-4 [&>*]:mb-4">
             {filtered.map((img, i) => (
               <motion.button
-                key={img.src}
+                key={`${img.src}-${i}`}
                 type="button"
                 onClick={() => setOpen(i)}
                 initial={{ opacity: 0, y: 24 }}
@@ -188,7 +123,9 @@ function Gallery() {
               >
                 <img
                   src={img.src}
-                  alt={`Kailo ${img.cat.toLowerCase()} moment`}
+                  srcSet={img.srcSet}
+                  sizes={SIZES.masonry}
+                  alt={img.alt}
                   loading="lazy"
                   className="w-full transition-transform duration-500 group-hover:scale-105"
                 />
@@ -206,7 +143,7 @@ function Gallery() {
         {open !== null && (
           <Lightbox
             src={filtered[open].src}
-            alt={`Kailo ${filtered[open].cat.toLowerCase()} moment, enlarged`}
+            alt={`${filtered[open].alt}, enlarged`}
             index={open}
             total={count}
             onClose={close}

@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_shared_social_links",
+  "info": {
+    "displayName": "Social link",
+    "description": "A footer social icon. `platform` doubles as the lucide-react icon name.",
+    "icon": "twitter"
+  },
+  "options": {},
+  "attributes": {
+    "platform": {
+      "type": "enumeration",
+      "enum": ["Instagram", "Twitter", "Facebook", "Youtube"]
+    },
+    "url": {
+      "type": "string"
+    }
+  }
+}

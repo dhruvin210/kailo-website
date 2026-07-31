@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_shared_contact_details",
+  "info": {
+    "displayName": "Contact detail",
+    "description": "An icon + label + value row on the contact page.",
+    "icon": "envelop"
+  },
+  "options": {},
+  "attributes": {
+    "icon": {
+      "type": "string",
+      "required": true
+    },
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "value": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

@@ -1,8 +1,63 @@
 import { Link } from "@tanstack/react-router";
-import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 import { Logo } from "./Logo";
+import { CmsLink } from "./CmsLink";
+import { getIcon } from "@/lib/icons";
+import { useGlobal, useSiteCategories } from "@/lib/site";
+
+/**
+ * Used when the CMS is unreachable, so the footer never collapses into an empty
+ * teal band. Mirrors what `global` is seeded with.
+ */
+const FALLBACK = {
+  tagline: "Crafted with finesse, made to move your soul.",
+  quickLinks: [
+    { href: "/about", label: "About Us" },
+    { href: "/gallery", label: "Gallery" },
+    { href: "/contact", label: "Contact" },
+    { href: "/account", label: "My Account" },
+  ],
+  categories: [
+    "Tenor Size Bags",
+    "Concert Size Bags",
+    "Denim",
+    "Suede Leather",
+    "NDM Leather",
+    "Ukuleles",
+  ],
+  socials: ["Instagram", "Twitter", "Facebook", "Youtube"],
+  contact: [
+    "hello@kailo.com",
+    "+1 (800) KAILO-01",
+    "123 Music Lane, Nashville, TN",
+    "Mon–Fri 9AM–6PM EST",
+  ],
+  copyright: "© 2025 Kailo. All rights reserved.",
+};
 
 export function Footer() {
+  const global = useGlobal();
+  const categories = useSiteCategories();
+
+  const quickLinks = global?.footerQuickLinks?.length
+    ? global.footerQuickLinks
+    : FALLBACK.quickLinks;
+
+  // The Products column is not part of `global` — it is the Category collection,
+  // linked into the shop's filter.
+  const categoryNames = categories?.length
+    ? categories.map((category) => category.name)
+    : FALLBACK.categories;
+
+  const socials = global?.socialLinks?.length
+    ? global.socialLinks
+    : FALLBACK.socials.map((platform) => ({ platform, url: "#" }));
+
+  const contactLines = global
+    ? [global.contactEmail, global.contactPhone, global.contactAddress, global.contactHours].filter(
+        (line): line is string => !!line,
+      )
+    : FALLBACK.contact;
+
   return (
     <footer className="bg-[#2EBFC3] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
@@ -11,20 +66,27 @@ export function Footer() {
           <Logo light />
 
           <p className="mt-4 max-w-xs text-sm text-white/90">
-            Crafted with finesse, made to move your soul.
+            {global?.tagline?.trim() || FALLBACK.tagline}
           </p>
 
           <div className="mt-5 flex gap-3">
-            {[Instagram, Twitter, Facebook, Youtube].map((Icon, i) => (
-              <a
-                key={i}
-                href="#"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#2EBFC3] transition-all duration-300 hover:scale-110 hover:bg-black hover:text-white"
-                aria-label="Social link"
-              >
-                <Icon className="h-5 w-5" />
-              </a>
-            ))}
+            {socials.map(({ platform, url }) => {
+              // `platform` doubles as the lucide icon name.
+              const Icon = getIcon(platform);
+
+              return (
+                <a
+                  key={platform}
+                  href={url || "#"}
+                  target={url && url !== "#" ? "_blank" : undefined}
+                  rel={url && url !== "#" ? "noopener noreferrer" : undefined}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#2EBFC3] transition-all duration-300 hover:scale-110 hover:bg-black hover:text-white"
+                  aria-label={platform ?? "Social link"}
+                >
+                  <Icon className="h-5 w-5" />
+                </a>
+              );
+            })}
           </div>
         </div>
 
@@ -35,16 +97,11 @@ export function Footer() {
           </h4>
 
           <ul className="space-y-3 text-sm">
-            {[
-              { to: "/about", label: "About Us" },
-              { to: "/gallery", label: "Gallery" },
-              { to: "/contact", label: "Contact" },
-              { to: "/account", label: "My Account" },
-            ].map((l) => (
-              <li key={l.to}>
-                <Link to={l.to} className="transition-colors duration-300 hover:text-black">
+            {quickLinks.map((l) => (
+              <li key={l.href}>
+                <CmsLink href={l.href} className="transition-colors duration-300 hover:text-black">
                   {l.label}
-                </Link>
+                </CmsLink>
               </li>
             ))}
           </ul>
@@ -55,7 +112,7 @@ export function Footer() {
           <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-white">Products</h4>
 
           <ul className="space-y-3 text-sm">
-            {["Cases", "Straps", "Tuners", "Picks", "Cleaning Kits"].map((c) => (
+            {categoryNames.map((c) => (
               <li key={c}>
                 <Link
                   to="/products"
@@ -74,10 +131,9 @@ export function Footer() {
           <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-white">Contact</h4>
 
           <ul className="space-y-3 text-sm text-white/90">
-            <li>hello@kailo.com</li>
-            <li>+1 (800) KAILO-01</li>
-            <li>123 Music Lane, Nashville, TN</li>
-            <li>Mon–Fri 9AM–6PM EST</li>
+            {contactLines.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
           </ul>
         </div>
       </div>
@@ -85,7 +141,7 @@ export function Footer() {
       {/* Bottom */}
       <div className="border-t border-white/30 bg-[#239DA4]">
         <div className="mx-auto max-w-7xl px-4 py-5 text-center text-sm text-white">
-          © 2025 Kailo. All rights reserved.
+          {global?.copyright?.trim() || FALLBACK.copyright}
         </div>
       </div>
     </footer>

@@ -1,0 +1,63 @@
+############################
+# OS / editor
+############################
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+############################
+# Logs
+############################
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+############################
+# Dependencies
+############################
+node_modules/
+.yarn/
+.pnp.*
+
+############################
+# Strapi build output & caches
+############################
+.cache/
+.tmp/
+build/
+dist/
+.strapi/
+.strapi-updater.json
+exports/
+*.cache
+
+############################
+# Generated types
+############################
+types/generated/
+
+############################
+# Uploaded media (local provider)
+# Media belongs in the Media Library, not in git — `npm run seed` recreates it.
+############################
+public/uploads/*
+!public/uploads/.gitkeep
+
+############################
+# Secrets & local database files
+############################
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.sqlite3
+.pgdata/
