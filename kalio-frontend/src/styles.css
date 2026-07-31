@@ -64,6 +64,9 @@
   --border: oklch(0.92 0.01 240);
   --input: oklch(0.92 0.01 240);
   --ring: oklch(0.69 0.105 195);
+  /* The homepage film band's ground — a soft tint of the Kailo teal. It is a
+     mid-tone, so the type on it is ink rather than white. */
+  --film-band: #5bbdc5;
 }
 
 @layer base {

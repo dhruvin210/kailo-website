@@ -20,7 +20,7 @@
  *    even after the product is repriced or unpublished.
  */
 
-import { STRAPI_URL } from "./strapi";
+import { CMS_IS_STATIC, STRAPI_URL } from "./strapi";
 
 /** One line item, in the shape the CMS stores. */
 export type SyncedItem = {
@@ -84,7 +84,7 @@ export async function syncCart(
   cartToken: string,
   { items, subtotal }: SyncPayload,
 ): Promise<boolean> {
-  if (!isCartToken(cartToken)) return false;
+  if (CMS_IS_STATIC || !isCartToken(cartToken)) return false;
 
   try {
     const res = await fetch(`${STRAPI_URL}/api/carts/token/${encodeURIComponent(cartToken)}`, {
@@ -110,7 +110,7 @@ export async function syncCart(
  * locally anyway.
  */
 export async function fetchCart(cartToken: string): Promise<RemoteCart | null> {
-  if (!isCartToken(cartToken)) return null;
+  if (CMS_IS_STATIC || !isCartToken(cartToken)) return null;
 
   try {
     const res = await fetch(`${STRAPI_URL}/api/carts/token/${encodeURIComponent(cartToken)}`);
@@ -140,7 +140,7 @@ export async function fetchCart(cartToken: string): Promise<RemoteCart | null> {
  * token that was just converted and the row is marked terminally.
  */
 export async function markCartRecovered(cartToken: string): Promise<boolean> {
-  if (!isCartToken(cartToken)) return false;
+  if (CMS_IS_STATIC || !isCartToken(cartToken)) return false;
 
   try {
     const res = await fetch(

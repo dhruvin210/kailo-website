@@ -18,10 +18,25 @@
  *    Cloudinary. `mediaUrl` handles both.
  */
 
-const DEFAULT_BASE = "http://localhost:1337";
+import { resolveSnapshot } from "./cms-snapshot";
 
-/** Base origin of the CMS, without a trailing slash. */
-export const STRAPI_URL = (import.meta.env.VITE_STRAPI_URL ?? DEFAULT_BASE).replace(/\/+$/, "");
+/**
+ * With no VITE_STRAPI_URL there is no CMS to call, so reads come from the
+ * snapshot in `cms-snapshot/` instead — see the note there.
+ *
+ * This is why the variable has no localhost default. One used to live here, and
+ * because `import.meta.env` is inlined at build time, a deploy that forgot to set
+ * the variable shipped `http://localhost:1337` into production and 500'd on every
+ * route. Falling back to real content is the honest failure mode; pointing at a
+ * host that cannot exist in production is not.
+ */
+export const CMS_IS_STATIC = !import.meta.env.VITE_STRAPI_URL;
+
+/**
+ * Base origin of the CMS, without a trailing slash — and `""` in static mode, so
+ * the root-relative upload URLs in the snapshot resolve against this site.
+ */
+export const STRAPI_URL = (import.meta.env.VITE_STRAPI_URL ?? "").replace(/\/+$/, "");
 
 /* ──────────────────────────── payload types ──────────────────────────── */
 
@@ -113,6 +128,12 @@ const errorDetail = (body: string): string => {
  * browser and during SSR — both have a global `fetch`.
  */
 export async function strapiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  if (CMS_IS_STATIC) {
+    const snapshot = resolveSnapshot(path);
+    if (!snapshot) throw new StrapiError(404, path, "not in the CMS snapshot");
+    return snapshot.data as T;
+  }
+
   const res = await fetch(`${STRAPI_URL}/api${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", ...init?.headers },
@@ -131,6 +152,12 @@ export async function strapiFetchList<T>(
   path: string,
   init?: RequestInit,
 ): Promise<{ data: T[]; pagination?: StrapiPagination }> {
+  if (CMS_IS_STATIC) {
+    const snapshot = resolveSnapshot(path);
+    if (!snapshot) throw new StrapiError(404, path, "not in the CMS snapshot");
+    return { data: (snapshot.data ?? []) as T[], pagination: snapshot.meta?.pagination };
+  }
+
   const res = await fetch(`${STRAPI_URL}/api${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", ...init?.headers },
@@ -263,6 +290,12 @@ export async function postToStrapi<T = unknown>(
   path: string,
   data: Record<string, unknown>,
 ): Promise<StrapiPostResult<T>> {
+  // Nothing to write to. Reported as a failure so the form shows its error and
+  // points at the mailto — never a fake success for a message no one will read.
+  if (CMS_IS_STATIC) {
+    return { ok: false, status: 0, message: "The CMS is not connected in this deployment." };
+  }
+
   let res: Response;
 
   try {

@@ -10,14 +10,29 @@ type LightboxProps = {
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
+  /** A film plays here with its sound and its own controls. Default is a still. */
+  kind?: "image" | "video";
+  /** The film's poster, so the frame is filled before the first bytes land. */
+  poster?: string;
 };
 
 /**
- * Full-screen image viewer with keyboard nav, a focus trap and scroll lock.
- * Shared by the homepage gallery section and the gallery page.
+ * Full-screen media viewer with keyboard nav, a focus trap and scroll lock.
+ * Shared by the homepage gallery and film sections and the gallery page.
  */
-export function Lightbox({ src, alt, index, total, onClose, onNext, onPrev }: LightboxProps) {
+export function Lightbox({
+  src,
+  alt,
+  index,
+  total,
+  onClose,
+  onNext,
+  onPrev,
+  kind = "image",
+  poster,
+}: LightboxProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const noun = kind === "video" ? "Film" : "Image";
 
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;
@@ -27,11 +42,14 @@ export function Lightbox({ src, alt, index, total, onClose, onNext, onPrev }: Li
     dialogRef.current?.focus();
 
     const onKeyDown = (e: KeyboardEvent) => {
+      // With the player focused the arrows belong to it, for scrubbing.
+      const scrubbing = e.target instanceof HTMLVideoElement;
+
       if (e.key === "Escape") {
         onClose();
-      } else if (e.key === "ArrowRight") {
+      } else if (e.key === "ArrowRight" && !scrubbing) {
         onNext();
-      } else if (e.key === "ArrowLeft") {
+      } else if (e.key === "ArrowLeft" && !scrubbing) {
         onPrev();
       } else if (e.key === "Tab") {
         // Trap focus within the dialog's focusable controls.
@@ -64,7 +82,7 @@ export function Lightbox({ src, alt, index, total, onClose, onNext, onPrev }: Li
       ref={dialogRef}
       role="dialog"
       aria-modal="true"
-      aria-label={`Image ${index + 1} of ${total}`}
+      aria-label={`${noun} ${index + 1} of ${total}`}
       tabIndex={-1}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -95,23 +113,42 @@ export function Lightbox({ src, alt, index, total, onClose, onNext, onPrev }: Li
           e.stopPropagation();
           onPrev();
         }}
-        aria-label="Previous image"
+        aria-label={`Previous ${noun.toLowerCase()}`}
         className="absolute left-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/25 sm:left-6"
       >
         <ChevronLeft className="h-6 w-6" />
       </button>
 
-      {/* Image */}
-      <motion.img
-        key={src}
-        src={src}
-        alt={alt}
-        onClick={(e) => e.stopPropagation()}
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl"
-      />
+      {/* Media. The film opens playing — the click that got here is the gesture
+          that lets it start with sound — and loops until it is dismissed. */}
+      {kind === "video" ? (
+        <motion.video
+          key={src}
+          src={src}
+          poster={poster}
+          aria-label={alt}
+          controls
+          autoPlay
+          loop
+          playsInline
+          onClick={(e) => e.stopPropagation()}
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="max-h-[85vh] w-full max-w-5xl rounded-2xl shadow-2xl"
+        />
+      ) : (
+        <motion.img
+          key={src}
+          src={src}
+          alt={alt}
+          onClick={(e) => e.stopPropagation()}
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl"
+        />
+      )}
 
       {/* Next */}
       <button
@@ -120,7 +157,7 @@ export function Lightbox({ src, alt, index, total, onClose, onNext, onPrev }: Li
           e.stopPropagation();
           onNext();
         }}
-        aria-label="Next image"
+        aria-label={`Next ${noun.toLowerCase()}`}
         className="absolute right-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/25 sm:right-6"
       >
         <ChevronRight className="h-6 w-6" />

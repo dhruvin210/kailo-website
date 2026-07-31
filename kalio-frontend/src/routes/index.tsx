@@ -8,17 +8,30 @@ import {
   ChevronRight,
   Expand,
   MapPin,
+  Play,
   Quote,
   Sparkles,
   Star,
+  Volume2,
 } from "lucide-react";
 
 import { SiteLayout } from "@/components/SiteLayout";
 import { Lightbox } from "@/components/Lightbox";
+import { VideoLoop } from "@/components/VideoLoop";
 import { CmsLink } from "@/components/CmsLink";
 
 import { homePageQuery, type HomePage } from "@/lib/queries";
 import { mediaAlt, mediaSrcSet, mediaUrl, SIZES } from "@/lib/strapi";
+
+// The films ship with the app rather than through Strapi — the CMS models images
+// only, and these are fixed brand footage rather than editorial content. Posters
+// are stills lifted from each clip's opening second.
+import filmCollection from "@/assets/videos/the-collection.mp4";
+import filmCollectionPoster from "@/assets/videos/posters/the-collection.jpg";
+import filmAtelier from "@/assets/videos/atelier-golden-hour.mp4";
+import filmAtelierPoster from "@/assets/videos/posters/atelier-golden-hour.jpg";
+import filmCabin from "@/assets/videos/cabin-morning.mp4";
+import filmCabinPoster from "@/assets/videos/posters/cabin-morning.jpg";
 
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
@@ -103,6 +116,7 @@ function Home() {
       <Hero home={home} />
       <KailoSpirit home={home} />
       <ShopByCategory home={home} />
+      <InMotion />
       <OurGallery home={home} />
       <KindWords home={home} />
     </SiteLayout>
@@ -576,7 +590,165 @@ function CategoryTileLink({
   );
 }
 
-/* ─────────────────────── 4. OUR GALLERY ─────────────────────── */
+/* ─────────────────────── 4. IN MOTION ─────────────────────── */
+
+/**
+ * The three brand films, in layout order — the feature first, then the two that
+ * stack beside it. Moving a clip between slots is a matter of reordering this.
+ */
+const FILMS = [
+  {
+    src: filmCollection,
+    poster: filmCollectionPoster,
+    title: "The Collection",
+    meta: "Brass, grain, and the whole line-up",
+    label:
+      "A close pass across a Kailo bag's brass zip and buckle, then the full range of cases laid out along a workshop bench",
+  },
+  {
+    src: filmAtelier,
+    poster: filmAtelierPoster,
+    title: "Golden Hour at the Bench",
+    meta: "Where every bag is finished",
+    label:
+      "A ukulele beside a grey Kailo bag on a sunlit workbench, the padded lining opened out, then the bag with a denim strap",
+  },
+  {
+    src: filmCabin,
+    poster: filmCabinPoster,
+    title: "Packed and Out the Door",
+    meta: "The part before the playing",
+    label:
+      "A ukulele and a Kailo bag on a wooden bench in morning light, a close look at the stitched leather handle, then a case waiting by the door",
+  },
+];
+
+/**
+ * A dark, cinematic band of looping footage — the one break in the homepage's
+ * run of still grids, and the only place the brand moves.
+ *
+ * The loops are silent wallpaper; the sound is the reward for tapping one, which
+ * opens the film full-screen in the shared lightbox.
+ */
+function InMotion() {
+  const [open, setOpen] = useState<number | null>(null);
+
+  const total = FILMS.length;
+  const close = useCallback(() => setOpen(null), []);
+  const next = useCallback(() => setOpen((o) => (o === null ? o : (o + 1) % total)), [total]);
+  const prev = useCallback(
+    () => setOpen((o) => (o === null ? o : (o - 1 + total) % total)),
+    [total],
+  );
+
+  return (
+    <section className="relative overflow-hidden bg-[var(--film-band)] py-20 text-[var(--ink)] sm:py-24 lg:py-28">
+      {/* Light and shade washed into the flat teal, so the band has depth behind
+          the tiles. White reads as haze here where a teal glow would go muddy. */}
+      <div className="pointer-events-none absolute -left-40 top-1/4 h-[28rem] w-[28rem] rounded-full bg-white/25 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-[var(--primary-dark)]/20 blur-3xl" />
+
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+        <motion.div {...reveal} className="mb-12 max-w-2xl">
+          <p className="inline-flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--ink)]/75">
+            <span className="h-px w-8 bg-[var(--ink)]/30" />
+            In Motion
+          </p>
+          <h2 className="mt-5 text-4xl font-semibold md:text-5xl">Ten seconds with a Kailo</h2>
+          <p className="mt-5 text-lg leading-relaxed text-[var(--ink)]/75">
+            Short films from the bench and the road — the grain, the brass and the stitch line, in
+            the light they were made for.
+          </p>
+          <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--ink)]/20 bg-white/25 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ink)]/80 backdrop-blur">
+            <Volume2 className="h-3.5 w-3.5" />
+            Tap any film for sound
+          </p>
+        </motion.div>
+
+        {/* Bento, as the category band above: the feature holds two of three columns
+            and both rows, the other two films stack beside it. */}
+        <div className="grid gap-4 sm:gap-5 lg:grid-cols-3 lg:grid-rows-2">
+          {FILMS.map((film, i) => (
+            <motion.div
+              key={film.title}
+              {...revealItem(i)}
+              className={i === 0 ? "lg:col-span-2 lg:row-span-2 lg:h-full" : "lg:h-full"}
+            >
+              <FilmTile film={film} feature={i === 0} onOpen={() => setOpen(i)} />
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {open !== null && (
+          <Lightbox
+            kind="video"
+            src={FILMS[open].src}
+            poster={FILMS[open].poster}
+            alt={FILMS[open].label}
+            index={open}
+            total={total}
+            onClose={close}
+            onNext={next}
+            onPrev={prev}
+          />
+        )}
+      </AnimatePresence>
+    </section>
+  );
+}
+
+function FilmTile({
+  film,
+  feature,
+  onOpen,
+}: {
+  film: (typeof FILMS)[number];
+  feature: boolean;
+  onOpen: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={`Watch “${film.title}” with sound`}
+      // 21:9 is a deliberate letterbox: it suits a film strip, it keeps three
+      // clips from becoming a tall wall on a phone, and the top-anchored crop
+      // takes the generator's watermark out of the low-right corner with it.
+      // The captions sit on footage, not on the band, so everything inside the
+      // tile stays white even though the section around it is inked.
+      className="group relative block aspect-21/9 w-full overflow-hidden rounded-3xl text-white ring-1 ring-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--film-band)] lg:aspect-auto lg:h-full"
+    >
+      <VideoLoop
+        src={film.src}
+        poster={film.poster}
+        label={film.label}
+        style={{ objectPosition: "center top" }}
+        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+      />
+
+      <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+
+      <span className="pointer-events-none absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/20 text-white backdrop-blur transition-colors group-hover:bg-white group-hover:text-[var(--ink)] sm:right-5 sm:top-5">
+        <Play className="h-4 w-4 fill-current" />
+      </span>
+
+      <span className="pointer-events-none absolute inset-x-4 bottom-3.5 text-left sm:inset-x-5 sm:bottom-5">
+        <span className="block text-[10px] uppercase tracking-[0.2em] text-white/75 sm:text-xs">
+          {film.meta}
+        </span>
+        <span
+          className={`mt-1 block font-semibold ${feature ? "text-xl sm:text-3xl" : "text-lg sm:text-2xl"}`}
+        >
+          {film.title}
+        </span>
+      </span>
+    </button>
+  );
+}
+
+/* ─────────────────────── 5. OUR GALLERY ─────────────────────── */
 
 function OurGallery({ home }: { home: HomePage }) {
   const [open, setOpen] = useState<number | null>(null);
@@ -671,7 +843,7 @@ function OurGallery({ home }: { home: HomePage }) {
   );
 }
 
-/* ─────────────────────── 5. KIND WORDS ─────────────────────── */
+/* ─────────────────────── 6. KIND WORDS ─────────────────────── */
 
 function KindWords({ home }: { home: HomePage }) {
   const testimonials = home.testimonials ?? [];
