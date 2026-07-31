@@ -4,11 +4,15 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { SiteLayout } from "@/components/SiteLayout";
 import { Lightbox } from "@/components/Lightbox";
+import { VideoLoop } from "@/components/VideoLoop";
 import { galleryQuery } from "@/lib/queries";
 import { SIZES } from "@/lib/strapi";
 
 // The page's own hero has no CMS home — see "Known gaps" in the backend README.
-import aiRestringing from "@/assets/lifestyle/restringing.png";
+// A page of stills opens on the one thing that moves; the poster is a frame from
+// the clip itself, so a reduced-motion visitor still gets the same picture.
+import heroFilm from "@/assets/videos/carried-anywhere.mp4";
+import heroFilmPoster from "@/assets/videos/posters/carried-anywhere.jpg";
 
 export const Route = createFileRoute("/gallery")({
   loader: ({ context }) => context.queryClient.ensureQueryData(galleryQuery()),
@@ -60,15 +64,21 @@ function Gallery() {
     <SiteLayout>
       {/* ───────────────────────── HERO ──────────────────────── */}
       <section className="relative flex h-[70vh] min-h-[520px] items-center overflow-hidden bg-black">
-        {/* Full-bleed hero */}
-        <img
-          src={aiRestringing}
-          alt="A musician restringing a guitar in the Kailo workshop"
+        {/* Full-bleed hero. Anchored to the top so the crop keeps the instrument
+            and the bag rather than the floor. */}
+        <VideoLoop
+          src={heroFilm}
+          poster={heroFilmPoster}
+          label="A ukulele and a Kailo bag on a sunlit bench, the stitched leather handle up close, then a case waiting by an open door"
+          style={{ objectPosition: "center top" }}
           className="absolute inset-0 h-full w-full object-cover"
         />
         {/* Legibility grade — dark on the left where the text sits */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/15" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/25" />
+        {/* Cinematic vignette, as on the about hero — it seats the footage in the
+            page and keeps the bright corners off the type. */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_60%_45%,transparent_40%,rgba(0,0,0,0.5)_100%)]" />
 
         <motion.div {...reveal} className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8">
           <div className="max-w-2xl text-white">

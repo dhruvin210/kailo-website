@@ -5,10 +5,16 @@ import { ArrowRight, Quote } from "lucide-react";
 
 import { SiteLayout } from "@/components/SiteLayout";
 import { CmsLink } from "@/components/CmsLink";
+import { VideoLoop } from "@/components/VideoLoop";
 
 import { getIcon } from "@/lib/icons";
 import { aboutPageQuery, type AboutPage } from "@/lib/queries";
 import { mediaAlt, mediaSrcSet, mediaUrl, SIZES } from "@/lib/strapi";
+
+// Bundled with the app rather than CMS-managed — the CMS models images only, and
+// this is fixed brand footage. The poster is a still from the clip's own opening.
+import filmDetail from "@/assets/videos/brass-and-stitching.mp4";
+import filmDetailPoster from "@/assets/videos/posters/brass-and-stitching.jpg";
 
 export const Route = createFileRoute("/about")({
   loader: async ({ context }) => ({
@@ -428,20 +434,26 @@ function Materials({ about }: { about: AboutPage }) {
 
 /**
  * The story's third paragraph, turned into the three places you can feel it —
- * every stitch, every strap, every lining — against a detail photo. The one
- * dark band on the page, so the scroll has a break in it.
+ * every stitch, every strap, every lining — against the detail film. The one
+ * saturated band on the page, so the scroll has a break in it; it shares its
+ * teal ground and inked type with the homepage's film band.
+ *
+ * Unlike the other bands, this one no longer bails on an empty repeatable: the
+ * film and the copy beside it stand on their own, so an editor who has not
+ * written the three details yet gets a band rather than a gap. Only the list
+ * itself is conditional.
  */
 function Craft({ about }: { about: AboutPage }) {
   const { reveal, revealItem, reduceMotion } = useReveal();
 
   const details = about.craftDetails ?? [];
-  if (details.length === 0) return null;
 
   return (
-    <section className="relative overflow-hidden bg-[var(--ink)] py-24 text-white sm:py-28 lg:py-32">
-      {/* Teal glow, kept well behind the type */}
-      <div className="pointer-events-none absolute -left-40 top-1/4 h-[28rem] w-[28rem] rounded-full bg-primary/20 blur-3xl" />
-      <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
+    <section className="relative overflow-hidden bg-[var(--film-band)] py-24 text-[var(--ink)] sm:py-28 lg:py-32">
+      {/* Light and shade washed into the flat teal, kept well behind the type. On
+          this ground white reads as haze where a teal glow would go muddy. */}
+      <div className="pointer-events-none absolute -left-40 top-1/4 h-[28rem] w-[28rem] rounded-full bg-white/25 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-[var(--primary-dark)]/20 blur-3xl" />
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
@@ -452,63 +464,66 @@ function Craft({ about }: { about: AboutPage }) {
             transition={{ duration: reduceMotion ? 0.3 : 0.7, ease: EASE }}
             className="relative order-2 mx-auto w-full max-w-md lg:order-1 lg:max-w-none"
           >
-            <div className="overflow-hidden rounded-[2rem] shadow-2xl ring-1 ring-white/10">
-              <img
-                src={mediaUrl(about.craftImage)}
-                srcSet={mediaSrcSet(about.craftImage)}
-                sizes={SIZES.editorialHalf}
-                alt={mediaAlt(
-                  about.craftImage,
-                  "A Kailo craftsperson hand-stitching a leather ukulele bag",
-                )}
-                loading="lazy"
-                decoding="async"
+            {/* The one moving frame on the page, and the section that earns it:
+                a macro pass over the brass and the stitch line says more than a
+                still can. `about.craftImage` is deliberately not read here — the
+                film brings its own poster, so the two never cross-fade. The 4:5
+                crop takes the generator's watermark off the right edge with it. */}
+            <div className="overflow-hidden rounded-[2rem] shadow-2xl ring-1 ring-black/10">
+              <VideoLoop
+                src={filmDetail}
+                poster={filmDetailPoster}
+                label="A close pass over the brass buckle and stitching on a grey leather Kailo bag, then the range of cases on a workshop shelf"
                 className="aspect-4/5 w-full object-cover"
               />
             </div>
-            <div className="absolute -bottom-5 -right-4 rounded-2xl border border-white/15 bg-white/10 px-5 py-3 backdrop-blur sm:-right-6">
-              <p className="text-xs uppercase tracking-[0.2em] text-white/70">On the bench</p>
+            <div className="absolute -bottom-5 -right-4 rounded-2xl border border-[var(--ink)]/20 bg-white/30 px-5 py-3 backdrop-blur sm:-right-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--ink)]/75">
+                On the bench
+              </p>
             </div>
           </motion.div>
 
           <div className="order-1 lg:order-2">
             <motion.div {...reveal}>
-              <p className="inline-flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.3em] text-primary">
-                <span className="h-px w-8 bg-primary/50" />
+              <p className="inline-flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.3em] text-[var(--ink)]/75">
+                <span className="h-px w-8 bg-[var(--ink)]/30" />
                 {text(about.craftEyebrow, "The little things")}
               </p>
               <h2 className="mt-6 text-4xl font-semibold leading-[1.1] md:text-5xl">
                 {text(about.craftHeading, "Where the detail lives")}
               </h2>
               {about.craftDescription && (
-                <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/70">
+                <p className="mt-5 max-w-xl text-lg leading-relaxed text-[var(--ink)]/75">
                   {about.craftDescription}
                 </p>
               )}
             </motion.div>
 
-            <ul className="mt-12 space-y-4">
-              {details.map((detail, i) => {
-                // The CMS stores the lucide component's name, not markup.
-                const Icon = getIcon(detail.icon);
+            {details.length > 0 && (
+              <ul className="mt-12 space-y-4">
+                {details.map((detail, i) => {
+                  // The CMS stores the lucide component's name, not markup.
+                  const Icon = getIcon(detail.icon);
 
-                return (
-                  <motion.li
-                    key={detail.title}
-                    {...revealItem(i)}
-                    className="flex gap-5 rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur transition-colors hover:border-white/20 hover:bg-white/10 sm:p-6"
-                  >
-                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">{detail.title}</h3>
-                      <p className="mt-1.5 leading-relaxed text-white/70">{detail.body}</p>
-                    </div>
-                  </motion.li>
-                );
-              })}
-            </ul>
+                  return (
+                    <motion.li
+                      key={detail.title}
+                      {...revealItem(i)}
+                      className="flex gap-5 rounded-2xl border border-[var(--ink)]/15 bg-white/25 p-5 backdrop-blur transition-colors hover:border-[var(--ink)]/25 hover:bg-white/40 sm:p-6"
+                    >
+                      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/50 text-[var(--ink)]">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{detail.title}</h3>
+                        <p className="mt-1.5 leading-relaxed text-[var(--ink)]/75">{detail.body}</p>
+                      </div>
+                    </motion.li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </div>
       </div>
