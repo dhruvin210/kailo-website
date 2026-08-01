@@ -154,7 +154,7 @@ there first.
 
 | Type | Endpoint | Notes |
 |---|---|---|
-| **Category** | `/api/categories` | 6 seeded, one flat level — bags by size, straps by material: Tenor Size Bags, Concert Size Bags, Denim, Suede Leather, NDM Leather, Ukuleles (coming soon, no products yet). Category sets price: bags ₹5,000 / ₹4,500, straps ₹600 / ₹800 / ₹800. `name` is unique and is what `?category=` filters on. |
+| **Category** | `/api/categories` | 3 seeded, one flat level — one per product line: Ukulele Bags, Ukulele Straps, Ukuleles (coming soon, no products yet). Bag size and strap material are `specs` on the product, not categories, and they are what set price: tenor ₹5,000 / concert ₹4,500 bags, denim ₹600 / suede and NDM leather ₹800 straps. `name` is unique and is what `?category=` filters on. |
 | **Product** | `/api/products` | 6 seeded. `slug` matches the old frontend `id` exactly. `price` is a whole-rupee **integer**. Draft & publish on. |
 | **Gallery Image** | `/api/gallery-images` | 30 seeded. `category` is `Products` \| `Lifestyle` \| `Events` — "All" is a UI-only filter and is deliberately not stored. `order` preserves the layout from `gallery.tsx`. |
 | **Newsletter Subscription** | `/api/newsletter-subscriptions` | Form capture. Public `create` only. `email` unique. |

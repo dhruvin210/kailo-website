@@ -414,23 +414,6 @@ function KailoSpirit({ home }: { home: HomePage }) {
             />
           </div>
 
-          {/* Overlapping workshop frame */}
-          {home.storyInsetImage && (
-            <img
-              src={mediaUrl(home.storyInsetImage, "small")}
-              srcSet={mediaSrcSet(home.storyInsetImage)}
-              // Never wider than 13rem, even on desktop.
-              sizes="13rem"
-              alt={mediaAlt(
-                home.storyInsetImage,
-                "A Kailo artisan hand-stitching leather at the workbench",
-              )}
-              loading="lazy"
-              decoding="async"
-              className="absolute -bottom-8 -right-4 hidden aspect-square w-36 rounded-3xl object-cover shadow-2xl ring-4 ring-background sm:block sm:w-44 lg:-right-8 lg:w-52"
-            />
-          )}
-
           {/* Floating stat card */}
           <div className="absolute left-5 top-5 rounded-2xl border border-border bg-card/95 px-5 py-3.5 shadow-xl backdrop-blur">
             <p className="font-display text-2xl font-semibold text-primary">

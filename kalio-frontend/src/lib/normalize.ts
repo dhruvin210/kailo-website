@@ -57,12 +57,13 @@ export type StrapiGalleryImage = {
 /* ──────────────────────────────── product ────────────────────────────── */
 
 /**
- * The `Product.category` union is a closed set of the six seeded category names.
- * A category renamed in the CMS still flows through — it simply won't match a
- * filter pill until the pill list is refetched, which it is on every visit.
+ * The `Product.category` union is a closed set of the three seeded category
+ * names. A category renamed in the CMS still flows through — it simply won't
+ * match a filter pill until the pill list is refetched, which it is on every
+ * visit.
  */
 const asProductCategory = (name: string | undefined): Product["category"] =>
-  (name ?? "Tenor Size Bags") as Product["category"];
+  (name ?? "Ukulele Bags") as Product["category"];
 
 /** First non-empty candidate, or `""` — safe to drop straight into `src`. */
 const firstUrl = (...candidates: (string | null | undefined)[]): string =>

@@ -100,7 +100,7 @@ deliberately want *less*.
 |---|---|---|
 | `id` | `slug` | e.g. `leather-ukulele-bag-brown`, `denim-ukulele-strap` |
 | `name` | `name` | |
-| `category` | `category.name` | Relation, not a string. `"Tenor Size Bags"`, `"Concert Size Bags"`, `"Denim"`, `"Suede Leather"`, `"NDM Leather"`, `"Ukuleles"` |
+| `category` | `category.name` | Relation, not a string. `"Ukulele Bags"`, `"Ukulele Straps"`, `"Ukuleles"` |
 | `price` | `price` | **Integer rupees.** Do not divide. |
 | `rating` | `rating` | Decimal |
 | `reviews` | `reviews` | |

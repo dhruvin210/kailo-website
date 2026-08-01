@@ -23,23 +23,24 @@ export type CategorySeed = {
 };
 
 /**
- * The catalogue is filed by what a customer actually chooses between: a bag's
- * size, a strap's material. "Ukulele Bags" and "Ukulele Straps" were the two
- * parents these replace — the taxonomy is deliberately one flat level, so a
- * category name is both the filter pill and the thing that carries a price.
+ * Kailo sells three things, and the catalogue is filed under exactly those: the
+ * bags, the straps, and — once it lands — the instrument itself. The taxonomy is
+ * deliberately one flat level, so a category name is both the filter pill and a
+ * whole product line.
+ *
+ * Size (tenor, concert) and strap material (denim, suede, NDM leather) were each
+ * a category of their own for a while. They are product attributes, not lines:
+ * they live in a product's `specs` and its name now, and nothing filters on them.
  */
 export const CATEGORIES: CategorySeed[] = [
-  { name: 'Tenor Size Bags', slug: 'tenor-size-bags', tagline: 'Cut for the tenor body', order: 1 },
+  { name: 'Ukulele Bags', slug: 'ukulele-bags', tagline: 'Padded leather, made to carry', order: 1 },
   {
-    name: 'Concert Size Bags',
-    slug: 'concert-size-bags',
-    tagline: 'Cut for the concert body',
+    name: 'Ukulele Straps',
+    slug: 'ukulele-straps',
+    tagline: 'Leather, suede and denim',
     order: 2,
   },
-  { name: 'Denim', slug: 'denim', tagline: 'Raw indigo, gold stitch', order: 3 },
-  { name: 'Suede Leather', slug: 'suede-leather', tagline: 'Soft from the first wear', order: 4 },
-  { name: 'NDM Leather', slug: 'ndm-leather', tagline: 'Hand-stitched full-grain', order: 5 },
-  { name: 'Ukuleles', slug: 'ukuleles', tagline: 'Coming soon', order: 6 },
+  { name: 'Ukuleles', slug: 'ukuleles', tagline: 'Coming soon', order: 3 },
 ];
 
 /**
@@ -57,11 +58,14 @@ export const RETIRED_CATEGORY_SLUGS = [
   'tuners',
   'picks',
   'cleaning-kits',
-  // The two parents the size/material split replaced. Their products are
-  // re-filed onto the new categories by `seedProducts`, so dropping these only
-  // removes two now-empty filter pills.
-  'ukulele-bags',
-  'ukulele-straps',
+  // The size/material split, folded back into the two product lines it broke up.
+  // These go first and `seedProducts` then re-files every product onto Ukulele
+  // Bags or Ukulele Straps, so no product is left without a category.
+  'tenor-size-bags',
+  'concert-size-bags',
+  'denim',
+  'suede-leather',
+  'ndm-leather',
 ];
 
 export const RETIRED_PRODUCT_SLUGS = [
@@ -134,11 +138,11 @@ export type ProductSeed = {
  * The real catalogue, shot in the Kailo showroom.
  *
  * Names, descriptions, specs and imagery describe what is actually in the
- * photographs. `price` is set by the product's category — every bag in a size
- * costs the same, every strap in a material costs the same:
+ * photographs. `price` follows the size of a bag and the material of a strap —
+ * neither is a category any more, so the numbers live here and nowhere else:
  *
- *   Tenor Size Bags ₹5,000 · Concert Size Bags ₹4,500
- *   Denim ₹600 · Suede Leather ₹800 · NDM Leather ₹800
+ *   Tenor bags ₹5,000 · Concert bags ₹4,500
+ *   Denim straps ₹600 · Suede and NDM leather straps ₹800
  *
  * `rating`, `reviews` and `stock` are still inherited from the placeholder
  * catalogue this replaced and want real numbers.
@@ -147,7 +151,7 @@ export const PRODUCTS: ProductSeed[] = [
   {
     slug: 'leather-ukulele-bag-brown',
     name: 'Leather Ukulele Bag — Brown',
-    category: 'Tenor Size Bags',
+    category: 'Ukulele Bags',
     price: 5000,
     rating: 4.8,
     reviews: 124,
@@ -167,7 +171,7 @@ export const PRODUCTS: ProductSeed[] = [
   {
     slug: 'leather-ukulele-bag-black',
     name: 'Leather Ukulele Bag — Black',
-    category: 'Tenor Size Bags',
+    category: 'Ukulele Bags',
     price: 5000,
     rating: 4.9,
     reviews: 312,
@@ -186,7 +190,7 @@ export const PRODUCTS: ProductSeed[] = [
   {
     slug: 'leather-ukulele-bag-stone',
     name: 'Leather Ukulele Bag — Stone',
-    category: 'Concert Size Bags',
+    category: 'Ukulele Bags',
     price: 4500,
     rating: 4.7,
     reviews: 87,
@@ -205,7 +209,7 @@ export const PRODUCTS: ProductSeed[] = [
   {
     slug: 'leather-ukulele-strap',
     name: 'Hand-Stitched Leather Ukulele Strap',
-    category: 'NDM Leather',
+    category: 'Ukulele Straps',
     price: 800,
     rating: 4.9,
     reviews: 421,
@@ -224,7 +228,7 @@ export const PRODUCTS: ProductSeed[] = [
   {
     slug: 'suede-ukulele-strap',
     name: 'Suede Ukulele Strap',
-    category: 'Suede Leather',
+    category: 'Ukulele Straps',
     price: 800,
     rating: 4.6,
     reviews: 188,
@@ -242,7 +246,7 @@ export const PRODUCTS: ProductSeed[] = [
   {
     slug: 'denim-ukulele-strap',
     name: 'Denim Ukulele Strap',
-    category: 'Denim',
+    category: 'Ukulele Straps',
     price: 600,
     rating: 4.7,
     reviews: 96,
@@ -419,58 +423,28 @@ export const HOME_PAGE = {
    * One tile per entry in CATEGORIES — `categoryFilter` must match a `name`
    * exactly, or the shop drops the filter and lands on "All".
    *
-   * Six tiles, so none is a feature: the bento's feature tile spans two columns
-   * and both rows, which leaves room for exactly two others. Without it the same
-   * grid is an even 3×2. Set `feature: true` on one tile again only if the list
-   * is back down to three.
+   * Three tiles, so the first is the feature: it spans two columns and both rows
+   * of the bento and the other two stack beside it, which is exactly the room
+   * left. A fourth tile would break that — even the grid back out instead, and
+   * clear `feature` on every tile.
    */
   categoryTiles: [
     {
-      name: 'Tenor Size Bags',
-      tagline: 'Cut for the tenor body',
+      name: 'Ukulele Bags',
+      tagline: 'Padded leather, made to carry',
       asset: 'bag-lineup-four',
       href: '/products',
-      categoryFilter: 'Tenor Size Bags',
+      categoryFilter: 'Ukulele Bags',
       position: 'center center',
-      feature: false,
+      feature: true,
       comingSoon: false,
     },
     {
-      name: 'Concert Size Bags',
-      tagline: 'Cut for the concert body',
-      asset: 'bag-display-table',
-      href: '/products',
-      categoryFilter: 'Concert Size Bags',
-      position: 'center center',
-      feature: false,
-      comingSoon: false,
-    },
-    {
-      name: 'Denim',
-      tagline: 'Raw indigo, gold stitch',
-      asset: 'strap-denim-indigo',
-      href: '/products',
-      categoryFilter: 'Denim',
-      position: 'center center',
-      feature: false,
-      comingSoon: false,
-    },
-    {
-      name: 'Suede Leather',
-      tagline: 'Soft from the first wear',
-      asset: 'strap-suede-tan',
-      href: '/products',
-      categoryFilter: 'Suede Leather',
-      position: 'center center',
-      feature: false,
-      comingSoon: false,
-    },
-    {
-      name: 'NDM Leather',
-      tagline: 'Hand-stitched full-grain',
+      name: 'Ukulele Straps',
+      tagline: 'Leather, suede and denim',
       asset: 'strap-leather-brown',
       href: '/products',
-      categoryFilter: 'NDM Leather',
+      categoryFilter: 'Ukulele Straps',
       // The strap hangs down the left of the frame; bias the crop that way.
       position: '40% center',
       feature: false,
@@ -657,9 +631,10 @@ export const ABOUT_PAGE = {
   storyStatLabel: 'Hand-finished',
 
   /**
-   * The three the catalogue is actually filed under — the names and the `meta`
-   * lines are CATEGORIES' own taglines, so nothing here claims a material the
-   * shop does not sell. The bodies are house copy.
+   * The three materials the straps are actually made in. These were categories
+   * of their own once; they are attributes now, and this section is the only
+   * place they are named as a set — so nothing here claims a material the shop
+   * does not sell. The bodies are house copy.
    * TODO(owner): confirm the material descriptions read true to your process.
    */
   materialsEyebrow: 'What we work in',

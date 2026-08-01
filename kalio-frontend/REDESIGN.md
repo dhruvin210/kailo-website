@@ -22,20 +22,32 @@ Bringing the four secondary pages up to the homepage (`src/routes/index.tsx`) de
 
 **All four phases complete.** Full site now matches the homepage design language.
 
-> **Superseded for Contact.** `src/routes/contact.tsx` was rebuilt on the About
-> page's newer pattern and no longer matches the Phase 4 description. The dark hero
-> is a light full-bleed one; the four unclickable detail cards that sat in a sidebar
-> beside the form are now a full-width hairline row of `mailto:`/`tel:`/maps links
-> directly under the hero, with the non-actionable ones (opening hours) moved down
-> beside the workshop photo so no detail is printed twice; the form runs down the
-> light half of a two-tone split band with the workshop on the teal half, and that
-> band now closes the page; and the subject `<select>` is a row of radio chips.
+> **Superseded for Contact.** `src/routes/contact.tsx` was rebuilt and no longer
+> matches the Phase 4 description. It is three bands:
 >
-> The page reads four of `contact-page`'s fields and no longer renders any of them:
+> 1. **Hero** — full-bleed on the dark navy, built on the *homepage's* treatment
+>    rather than About's light one: left-to-right black grade, vignette, film
+>    grain, white type, image-drifts-down / copy-lifts-and-fades parallax. Its
+>    image is `hero2`, one of the four wide carousel frames, because those are the
+>    only 16:9 originals in the library. Stacks image-over-copy below `lg`.
+> 2. **Enquiry** — details and the form side by side on `--bg-soft`, with three
+>    quick-contact cards under the form. Contact details are derived into links
+>    from their lucide icon name (`Mail`→mailto, `Phone`→tel, `MapPin`→maps);
+>    WhatsApp is derived from `VITE_WHATSAPP_NUMBER` or the published phone and
+>    drops out entirely when neither resolves. Social links are filtered for real
+>    URLs, so the row is hidden while `global.socialLinks` is all `#`.
+> 3. **Workshop** — the `mapEmbedUrl` iframe beside the address, hours, photo and
+>    directions. This band closes the page.
+>
+> The form posts `phone` and six enquiry types; both required backend changes (the
+> `contact-submission` schema and the `SUBJECTS` allowlist in its controller), and
+> the three lists must stay in sync — controller, seed `formSubjects`, and
+> `SUBJECTS` in the route.
+>
+> The page reads four of `contact-page`'s fields and renders none of them:
 > `faqEyebrow`, `faqHeading`, `faqs` and `cta`. A FAQ accordion and a closing CTA
-> strip were both built and then cut on review. `mapEmbedUrl` has never been read.
-> All five are left in the schema, so restoring any of them is a render, not a
-> migration.
+> were both built and then cut on review. All four are left in the schema, so
+> restoring either is a render, not a migration.
 
 > **Superseded for About.** `src/routes/about.tsx` was rebuilt again after this log
 > was written and no longer matches the Phase 1 description: the cinematic hero is

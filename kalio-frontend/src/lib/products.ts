@@ -15,16 +15,11 @@ export type Product = {
   id: string;
   name: string;
   /**
-   * A category name from the CMS. One flat level: bags are filed by size, straps
-   * by material, and the name doubles as the shop's filter pill.
+   * A category name from the CMS. One flat level, one entry per product line —
+   * size and strap material are `specs`, not categories — and the name doubles
+   * as the shop's filter pill.
    */
-  category:
-    | "Tenor Size Bags"
-    | "Concert Size Bags"
-    | "Denim"
-    | "Suede Leather"
-    | "NDM Leather"
-    | "Ukuleles";
+  category: "Ukulele Bags" | "Ukulele Straps" | "Ukuleles";
   /** Whole rupees. Format with `formatINR`; never divide. */
   price: number;
   rating: number;

@@ -16,14 +16,7 @@ const FALLBACK = {
     { href: "/contact", label: "Contact" },
     { href: "/account", label: "My Account" },
   ],
-  categories: [
-    "Tenor Size Bags",
-    "Concert Size Bags",
-    "Denim",
-    "Suede Leather",
-    "NDM Leather",
-    "Ukuleles",
-  ],
+  categories: ["Ukulele Bags", "Ukulele Straps", "Ukuleles"],
   socials: ["Instagram", "Twitter", "Facebook", "Youtube"],
   contact: [
     "abhinavsharma@kailostore.in",

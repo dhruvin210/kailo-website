@@ -5,7 +5,6 @@ import { SlidersHorizontal, ChevronDown, PackageOpen, X } from "lucide-react";
 
 import { SiteLayout } from "@/components/SiteLayout";
 import { ProductCard } from "@/components/ProductCard";
-import { formatINR } from "@/lib/products";
 import { categoriesQuery, productsQuery } from "@/lib/queries";
 import heroImg from "@/assets/lifestyle/ukulele-window.png";
 
@@ -44,15 +43,6 @@ export const Route = createFileRoute("/products")({
 
 type Sort = "newest" | "price-asc" | "price-desc" | "popular";
 
-/**
- * The slider's ends bracket the catalogue: straps start at ₹600 and a tenor bag
- * is the dearest thing Kailo sells at ₹5,000. A range wider than the prices makes
- * most of the track dead, and a floor above the straps makes them unreachable.
- */
-const MIN_PRICE = 500;
-const MAX_PRICE = 5000;
-const PRICE_STEP = 100;
-
 /** Shared scroll-reveal defaults — matches the homepage. */
 const reveal = {
   initial: { opacity: 0, y: 24 },
@@ -72,7 +62,6 @@ function Products() {
   const isCategory = (value: string) => pills.includes(value);
 
   const [cat, setCat] = useState<string>(category && isCategory(category) ? category : "All");
-  const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
   const [sort, setSort] = useState<Sort>("newest");
 
   // Keep the active category in sync when arriving via a category link
@@ -87,20 +76,18 @@ function Products() {
     let list = products.filter(
       (p) =>
         (cat === "All" || p.category === cat) &&
-        p.price <= maxPrice &&
         (query === "" || p.name.toLowerCase().includes(query)),
     );
     if (sort === "price-asc") list = [...list].sort((a, b) => a.price - b.price);
     if (sort === "price-desc") list = [...list].sort((a, b) => b.price - a.price);
     if (sort === "popular") list = [...list].sort((a, b) => b.reviews - a.reviews);
     return list;
-  }, [products, cat, maxPrice, sort, query]);
+  }, [products, cat, sort, query]);
 
-  const isFiltered = cat !== "All" || maxPrice < MAX_PRICE || query !== "";
+  const isFiltered = cat !== "All" || query !== "";
 
   const resetFilters = () => {
     setCat("All");
-    setMaxPrice(MAX_PRICE);
     // Drop any category/search coming from the URL so the reset actually sticks.
     if (category || q) navigate({ search: {}, replace: true });
   };
@@ -127,8 +114,7 @@ function Products() {
             <h1 className="text-4xl font-semibold md:text-6xl">All accessories</h1>
             <p className="mt-4 max-w-xl text-lg leading-relaxed text-white/90">
               {/* Counted from the catalogue so the copy cannot drift from the CMS. */}
-              {products.length} products, hand-picked. Filter by category, price or sort to find
-              your fit.
+              {products.length} products, hand-picked. Filter by category or sort to find your fit.
             </p>
           </div>
         </motion.div>
@@ -181,32 +167,6 @@ function Products() {
                 </div>
               </div>
 
-              {/* Price */}
-              <div className="mt-8">
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Max price
-                  </p>
-                  <span className="font-display text-sm font-semibold text-primary">
-                    {formatINR(maxPrice)}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min={MIN_PRICE}
-                  max={MAX_PRICE}
-                  step={PRICE_STEP}
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(Number(e.target.value))}
-                  aria-label="Maximum price"
-                  className="w-full accent-[var(--primary)]"
-                />
-                <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
-                  <span>{formatINR(MIN_PRICE)}</span>
-                  <span>{formatINR(MAX_PRICE)}</span>
-                </div>
-              </div>
-
               {/* Sort */}
               <div className="mt-8">
                 <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -255,7 +215,7 @@ function Products() {
                 </div>
                 <p className="mt-6 text-xl font-semibold">No products match these filters</p>
                 <p className="mt-2 max-w-sm text-muted-foreground">
-                  Try widening your price range or choosing a different category.
+                  Try choosing a different category, or clear your search.
                 </p>
                 <button
                   type="button"

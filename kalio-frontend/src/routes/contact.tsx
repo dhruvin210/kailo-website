@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 
 import { SiteLayout } from "@/components/SiteLayout";
-import { CmsLink } from "@/components/CmsLink";
 
 import { getIcon } from "@/lib/icons";
 import { contactPageQuery, type ContactDetail, type ContactPage } from "@/lib/queries";
@@ -93,7 +92,11 @@ const DEFAULT_SUBJECT = "General Enquiry";
 /** Used only when the CMS has no email detail to read. */
 const FALLBACK_EMAIL = "abhinavsharma@kailostore.in";
 
-/** The anchor the hero and the closing CTA both scroll to. */
+/**
+ * Kept after the closing CTA that used to jump here was cut: nothing on the page
+ * links to it now, but `/contact#contact-form` is a deep link worth honouring —
+ * it is what any "message us" link elsewhere on the site would point at.
+ */
 const FORM_ID = "contact-form";
 
 /**
@@ -237,10 +240,15 @@ function useChannels(contact: ContactPage) {
 /* ──────────────────────────── PAGE ──────────────────────────── */
 
 /**
- * Six bands, alternating white and the cool light grey so no two neighbours share
- * a ground, and each with a layout of its own so the scroll never repeats itself:
- * an asymmetric hero, the details and the form side by side, three quick channels,
- * the workshop with its map, the FAQs, and a single closing invitation.
+ * Three bands, each with a ground and a layout of its own so the scroll never
+ * repeats itself: a full-bleed hero on the dark navy, the details and the form
+ * side by side over three quick channels on the cool light grey, and the workshop
+ * with its map on white, which is where the page ends.
+ *
+ * `contactPage` also holds `faqEyebrow`, `faqHeading`, `faqs` and `cta`, none of
+ * which are read. A FAQ accordion and a closing invitation were both built here
+ * and then cut on review; the fields are left in the CMS rather than dropped from
+ * the schema, so putting either back is a render, not a migration.
  */
 function Contact() {
   const { contact } = Route.useLoaderData();
@@ -250,8 +258,6 @@ function Contact() {
       <Hero contact={contact} />
       <Enquiry contact={contact} />
       <Workshop contact={contact} />
-      <Faqs contact={contact} />
-      <ClosingCta contact={contact} />
     </SiteLayout>
   );
 }
@@ -664,7 +670,8 @@ function EnquiryForm({ contact, email }: { contact: ContactPage; email: string }
     <motion.div
       {...reveal}
       id={FORM_ID}
-      // Clears the sticky navbar when the closing CTA jumps back up here.
+      // Clears the sticky navbar for anything arriving on the `#contact-form`
+      // deep link.
       className="scroll-mt-24 rounded-[2rem] bg-card p-7 shadow-xl shadow-black/5 ring-1 ring-black/5 sm:p-9 lg:p-10"
     >
       <AnimatePresence mode="wait" initial={false}>
@@ -1019,140 +1026,6 @@ function Workshop({ contact }: { contact: ContactPage }) {
           </motion.div>
         </div>
       </div>
-    </section>
-  );
-}
-
-/* ─────────────────────── 4. FREQUENTLY ASKED ─────────────────────── */
-
-/**
- * The FAQs, on a controlled accordion rather than `<details>`.
- *
- * `<details>` cannot animate its own open and close — the element snaps — so the
- * panel is a framer-motion height transition instead, and the summary becomes a
- * real `<button>` carrying `aria-expanded` and `aria-controls`. One panel is open
- * at a time: these answers are short, and a page that grows by five paragraphs at
- * once loses the reader's place.
- */
-function Faqs({ contact }: { contact: ContactPage }) {
-  const { reveal, revealItem, reduceMotion } = useReveal();
-  const [open, setOpen] = useState<number | null>(0);
-
-  const faqs = contact.faqs ?? [];
-  if (faqs.length === 0) return null;
-
-  return (
-    <section className="bg-[var(--bg-soft)] py-20 sm:py-24 lg:py-28">
-      <div className="mx-auto max-w-3xl px-6 lg:px-8">
-        <motion.div {...reveal} className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary">
-            {text(contact.faqEyebrow, "Good to know")}
-          </p>
-          <h2 className="mt-5 text-balance text-4xl font-semibold leading-[1.1] md:text-5xl">
-            {text(contact.faqHeading, "Frequently asked")}
-          </h2>
-        </motion.div>
-
-        <div className="mt-12 space-y-3 sm:mt-14">
-          {faqs.map((faq, i) => {
-            const isOpen = open === i;
-            const panelId = `faq-panel-${i}`;
-            const buttonId = `faq-button-${i}`;
-
-            return (
-              <motion.div
-                key={faq.question}
-                {...revealItem(i)}
-                className="overflow-hidden rounded-2xl bg-card shadow-sm shadow-black/5 ring-1 ring-black/5"
-              >
-                <h3>
-                  <button
-                    type="button"
-                    id={buttonId}
-                    aria-expanded={isOpen}
-                    aria-controls={panelId}
-                    onClick={() => setOpen(isOpen ? null : i)}
-                    className="flex w-full items-center justify-between gap-5 p-6 text-left font-semibold transition-colors hover:text-primary sm:p-7"
-                  >
-                    {faq.question}
-                    <ChevronDown
-                      aria-hidden="true"
-                      className={`h-5 w-5 shrink-0 text-primary transition-transform duration-300 ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                </h3>
-
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      key="panel"
-                      id={panelId}
-                      role="region"
-                      aria-labelledby={buttonId}
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: reduceMotion ? 0 : 0.32, ease: EASE }}
-                      className="overflow-hidden"
-                    >
-                      <p className="px-6 pb-6 leading-relaxed text-muted-foreground sm:px-7 sm:pb-7">
-                        {faq.answer}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────── 5. CLOSING ─────────────────────────── */
-
-/**
- * One line, one button, and no contact details — every channel is already on this
- * page, so the close returns the reader to the form rather than listing the
- * address a third time. The button is an in-page anchor, which the stylesheet's
- * `scroll-behavior: smooth` turns into a glide back up.
- */
-function ClosingCta({ contact }: { contact: ContactPage }) {
-  const { reveal } = useReveal();
-  const cta = contact.cta;
-
-  return (
-    // Generous below: the card and the footer are both teal, and without the gap
-    // the white between them reads as a seam rather than as space.
-    <section className="px-6 pb-28 pt-6 sm:pb-32 lg:px-8">
-      <motion.div
-        {...reveal}
-        className="relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] bg-[var(--film-band)] px-8 py-16 text-center text-[var(--ink)] sm:px-16"
-      >
-        <div className="pointer-events-none absolute -left-16 -top-20 h-64 w-64 rounded-full bg-white/25 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -right-12 h-72 w-72 rounded-full bg-[var(--primary-dark)]/20 blur-3xl" />
-
-        <div className="relative">
-          <h2 className="mx-auto max-w-2xl text-balance text-3xl font-semibold leading-[1.15] md:text-4xl">
-            {text(cta?.heading, "Your next favourite accessory starts with a conversation.")}
-          </h2>
-          {cta?.body && (
-            <p className="mx-auto mt-4 max-w-xl leading-relaxed text-[var(--ink)]/75">{cta.body}</p>
-          )}
-
-          <CmsLink
-            href={cta?.buttonHref}
-            fallbackHref={`#${FORM_ID}`}
-            className="group mt-9 inline-flex items-center gap-2.5 rounded-full bg-white px-8 py-4 text-sm font-semibold uppercase tracking-[0.12em] text-foreground shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-0.5 hover:text-primary hover:shadow-xl"
-          >
-            {text(cta?.buttonLabel, "Start a conversation")}
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </CmsLink>
-        </div>
-      </motion.div>
     </section>
   );
 }

@@ -36,8 +36,11 @@ import {
  *     form rather than at a mail client.
  * 9 — Contact's hero goes full-bleed, so its image and OG image move to `hero2`,
  *     one of the four wide frames the homepage carousel runs on.
+ * 10 — Three categories, not six: bag size and strap material stop being lines
+ *     of their own and go back to being product attributes. Every product is
+ *     re-filed, and the homepage tiles and footer links follow.
  */
-export const SEED_VERSION = '9';
+export const SEED_VERSION = '10';
 
 const STORE = { type: 'plugin', name: 'kailo-seed' } as const;
 
