@@ -21,3 +21,25 @@ Bringing the four secondary pages up to the homepage (`src/routes/index.tsx`) de
 - [x] **Phase 4 — Contact** (`src/routes/contact.tsx`) — restyled form + detail cards, map block, FAQ accordion, teal CTA. ✅ typecheck clean, awaiting review.
 
 **All four phases complete.** Full site now matches the homepage design language.
+
+> **Superseded for Contact.** `src/routes/contact.tsx` was rebuilt on the About
+> page's newer pattern and no longer matches the Phase 4 description. The dark hero
+> is a light full-bleed one; the four unclickable detail cards that sat in a sidebar
+> beside the form are now a full-width hairline row of `mailto:`/`tel:`/maps links
+> directly under the hero, with the non-actionable ones (opening hours) moved down
+> beside the workshop photo so no detail is printed twice; the form runs down the
+> light half of a two-tone split band with the workshop on the teal half, and that
+> band now closes the page; and the subject `<select>` is a row of radio chips.
+>
+> The page reads four of `contact-page`'s fields and no longer renders any of them:
+> `faqEyebrow`, `faqHeading`, `faqs` and `cta`. A FAQ accordion and a closing CTA
+> strip were both built and then cut on review. `mapEmbedUrl` has never been read.
+> All five are left in the schema, so restoring any of them is a render, not a
+> migration.
+
+> **Superseded for About.** `src/routes/about.tsx` was rebuilt again after this log
+> was written and no longer matches the Phase 1 description: the cinematic hero is
+> now a light split hero, the values band and the teal closing CTA are gone, the
+> materials band is alternating rows rather than a card grid, and there is a
+> dedicated film band. The eyebrow rule (`tracking-[0.3em]` with flanking hairlines)
+> was dropped there too. Read the file, not this line, for the current pattern.

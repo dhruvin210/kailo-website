@@ -26,10 +26,10 @@ const FALLBACK = {
   ],
   socials: ["Instagram", "Twitter", "Facebook", "Youtube"],
   contact: [
-    "hello@kailo.com",
-    "+1 (800) KAILO-01",
-    "123 Music Lane, Nashville, TN",
-    "Mon–Fri 9AM–6PM EST",
+    "abhinavsharma@kailostore.in",
+    "(+91) 814 902 7675",
+    "Pune (MH)",
+    "Mon–Sat, 10AM–7PM IST",
   ],
   copyright: "© 2025 Kailo. All rights reserved.",
 };

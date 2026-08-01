@@ -25,8 +25,19 @@ import {
   type ImageRef,
 } from './data';
 
-/** Bump to force a re-seed on the next boot of an already-seeded database. */
-export const SEED_VERSION = '6';
+/**
+ * Bump to force a re-seed on the next boot of an already-seeded database.
+ *
+ * 7 — the published contact details (email, phone, address) and everything that
+ *     followed them off the old US placeholders: the map links, the workshop
+ *     location and the wholesale address in the FAQ answers.
+ * 8 — the Contact rebuild: six enquiry types in place of the old four subjects,
+ *     a new FAQ set, the hero copy and its image, and a CTA that points at the
+ *     form rather than at a mail client.
+ * 9 — Contact's hero goes full-bleed, so its image and OG image move to `hero2`,
+ *     one of the four wide frames the homepage carousel runs on.
+ */
+export const SEED_VERSION = '9';
 
 const STORE = { type: 'plugin', name: 'kailo-seed' } as const;
 
@@ -499,13 +510,17 @@ const seedAboutPage = async (strapi: Core.Strapi, media: MediaLibrary): Promise<
 };
 
 const seedContactPage = async (strapi: Core.Strapi, media: MediaLibrary): Promise<void> => {
+  // No city in either string. Both said "Nashville", which is template text this
+  // project never corrected — the workshop is in Pune (see CONTACT_PAGE's own
+  // address and map links). Alt text describes the frame instead, which is what
+  // it is for and what cannot go stale.
   const heroImage = await media.local(
     CONTACT_PAGE.heroImageAsset,
-    'The Kailo workshop bench in Nashville'
+    'The Kailo workshop bench in window light'
   );
   const workshopImage = await media.local(
     CONTACT_PAGE.workshopImageAsset,
-    'A Kailo craftsperson hand-stitching leather at the Nashville workshop'
+    'A Kailo craftsperson hand-stitching leather at the workshop bench'
   );
 
   await upsertSingle(strapi, 'api::contact-page.contact-page', {

@@ -280,7 +280,7 @@ const GALLERY_SOURCE: [asset: string, category: 'Products' | 'Lifestyle' | 'Even
     ['strap-leather-brown', 'Products', 'A hand-stitched Kailo leather ukulele strap'],
     ['lifestyle-artisan', 'Lifestyle', 'A Kailo artisan hand-stitching leather at the workbench'],
     ['bag-display-table', 'Products', 'Kailo leather ukulele bags and straps on the display table'],
-    ['lifestyle-workbench', 'Lifestyle', 'The Kailo workshop bench in Nashville'],
+    ['lifestyle-workbench', 'Lifestyle', 'The Kailo workshop bench in window light'],
     ['lifestyle-ukulele-window', 'Lifestyle', 'A Kailo ukulele bag resting in the window light'],
     ['photo01', 'Events', 'Kailo events moment'],
     ['photo15', 'Products', 'Kailo products moment'],
@@ -338,10 +338,10 @@ export const GLOBAL = {
     { platform: 'Facebook' as const, url: '#' },
     { platform: 'Youtube' as const, url: '#' },
   ],
-  contactEmail: 'hello@kailo.com',
-  contactPhone: '+1 (800) KAILO-01',
-  contactAddress: '123 Music Lane, Nashville, TN',
-  contactHours: 'Mon–Fri 9AM–6PM EST',
+  contactEmail: 'abhinavsharma@kailostore.in',
+  contactPhone: '(+91) 814 902 7675',
+  contactAddress: 'Pune (MH)',
+  contactHours: 'Mon–Sat, 10AM–7PM IST',
   copyright: '© 2025 Kailo. All rights reserved.',
   defaultSeo: {
     metaTitle: 'Kailo — Premium Instrument Accessories',
@@ -610,7 +610,7 @@ export const ABOUT_PAGE = {
     metaTitle: 'About — Kailo',
     metaDescription:
       'Kailo was founded by musicians, for musicians. Learn how a love of the ukulele became a workshop making leather bags worth carrying.',
-    ogImageAsset: 'photo03',
+    ogImageAsset: 'lifestyle-ukulele-window',
     canonicalUrl: '/about',
   },
 
@@ -619,21 +619,30 @@ export const ABOUT_PAGE = {
   heroHeadingLine2: 'made for the ukulele',
   heroSubtext:
     'Hand-stitched instrument bags from a workshop that believes the case should be worthy of what goes inside it.',
-  heroImageAsset: 'photo03',
+  // The widest frame in the library, because the About hero is full-bleed: the
+  // photograph is the band's ground, roughly 2.1:1 on a desktop viewport.
+  // `lifestyle-workbench` is 1916x821 (2.33:1), so it covers that with ~10% off
+  // the sides and no upscaling. It replaces `lifestyle-ukulele-window`, which is
+  // square — that was the right call for the split hero this section used to be,
+  // type beside a single framed portrait-ish still, but against a full-bleed band
+  // a 1254px square loses over half its height to the crop and is enlarged past
+  // its own resolution on any screen wider than 1254px.
+  heroImageAsset: 'lifestyle-workbench',
 
   /**
    * The brand story, supplied by the owner and used **verbatim** — punctuation,
    * em-dashes and apostrophes included. `storyLead` is the first paragraph, set
-   * full width in lead style; `storyParagraphs` are the three that follow, set
-   * in the column beside the image. `storyPullQuote` is an exact substring of
-   * the lead, lifted out to break the column.
+   * in lead style with a drop cap; `storyParagraphs` are the two that follow.
+   *
+   * `storyPullQuote` is still modelled and seeded but no longer rendered: it is a
+   * sentence out of `storyLead`, so setting it in a card mid-column printed the
+   * same line twice a screen apart.
    */
   storyEyebrow: 'How It Started',
   storyHeading: 'Founded by Musicians, for Musicians',
   storyLead:
     "Kailo began with a simple idea and a deep love for music. Founded by an amateur ukulele player, Kailo was born from the belief that every musician deserves to carry their instrument with pride, style, and confidence. A ukulele is more than just an instrument—it's a companion, a passion, and a part of who you are. We believed its case should reflect that.",
   storyParagraphs: [
-    'Leather has always been a timeless symbol of craftsmanship and style. By combining premium leather with thoughtful design, we set out to create instrument bags that not only protect your ukulele but also make a statement wherever your music takes you.',
     "Every Kailo bag is crafted with meticulous attention to detail—from the precision of every stitch to the comfort of every strap and the softness of every lining. Because we know it's the little things that make a big difference.",
     'Today, Kailo accompanies touring artists, passionate hobbyists, bedroom songwriters, and music students throughout the country, expanding its footprint to the entire world. While our community has grown, our purpose remains unchanged: to create beautifully crafted bags that protect the instruments musicians love and inspire them to carry their music with confidence.',
   ],
@@ -641,9 +650,9 @@ export const ABOUT_PAGE = {
     "A ukulele is more than just an instrument—it's a companion, a passion, and a part of who you are.",
   storyChips: ['Premium leather', 'Hand-stitched', 'Ships worldwide'],
   storyImageAsset: 'photo12',
-  // The old "100k+ / Musicians served" was invented. 100% hand-finished is the
-  // claim the brand already makes on the homepage.
-  // TODO(owner): swap in a real number — units sold, players served, years open.
+  // Modelled and seeded, but no longer rendered: the floating stat card was cut
+  // from the hero. Nothing else on the About page carries a figure, which is just
+  // as well — the number it held was never sourced.
   storyStatValue: '100%',
   storyStatLabel: 'Hand-finished',
 
@@ -656,7 +665,7 @@ export const ABOUT_PAGE = {
   materialsEyebrow: 'What we work in',
   materialsHeading: 'Three materials, chosen on purpose',
   materialsDescription:
-    'Every Kailo bag and strap starts as one of these — picked for how they wear after a year of being carried, not for what they cost.',
+    'Leather has always been a timeless symbol of craftsmanship and style. By combining premium leather with thoughtful design, we set out to create instrument bags that not only protect your ukulele but also make a statement wherever your music takes you.',
   materials: [
     {
       name: 'NDM Leather',
@@ -702,6 +711,11 @@ export const ABOUT_PAGE = {
     },
   ],
 
+  /**
+   * Modelled and seeded, but the "Mission & values" band is not in the current
+   * About design — it was cut along with the closing CTA when the page was rebuilt
+   * around five bands with a layout each. Same status as `GlobalSettings.newsletter`.
+   */
   valuesEyebrow: 'What we stand for',
   valuesHeading: 'Mission & values',
   values: [
@@ -749,6 +763,11 @@ export const ABOUT_PAGE = {
     },
   ],
 
+  /**
+   * Also seeded but no longer rendered: the About page ends on the audience row.
+   * Its single call to action now lives in the hero, where it is the only button
+   * on the page.
+   */
   cta: {
     heading: 'Carry your music with pride',
     body: 'Explore accessories built by musicians who live out of a case and on a strap — made to move with you.',
@@ -765,62 +784,99 @@ export const CONTACT_PAGE = {
   seo: {
     metaTitle: 'Contact — Kailo',
     metaDescription:
-      "Get in touch with Kailo. Support, wholesale, press — we'd love to hear from you.",
-    ogImageAsset: 'lifestyle-workbench',
+      "Get in touch with Kailo. Product questions, custom orders, wholesale and collaborations — we'd love to hear from you.",
+    // Follows the hero, so a shared link previews the frame the page opens on.
+    ogImageAsset: 'hero2',
     canonicalUrl: '/contact',
   },
 
   heroEyebrow: 'Contact',
-  heroHeading: "Let's talk",
+  heroHeading: "Let's make something beautiful together",
   heroSubtext:
-    "Questions, partnerships, press — drop us a line and we'll get back within one business day.",
-  heroImageAsset: 'lifestyle-workbench',
+    'Whether you play, sell, collect or want to build something with us — musicians, retailers and collaborators are all welcome here. Tell us what you have in mind.',
+  /**
+   * A 16:9 frame, because the hero is full-bleed.
+   *
+   * This went through the 4:5 strap-and-ukulele still first, which is the better
+   * photograph but the wrong shape: cropped to a full-width band it keeps either
+   * the instrument or the leather, never both. `hero2` is one of the four the
+   * homepage carousel runs on — the only images in the library shot wide — and its
+   * subject sits right of centre, which is what leaves the left third of the frame
+   * clear for the heading.
+   */
+  heroImageAsset: 'hero2',
 
+  /**
+   * The first three are the real, published contact details. `Hours` is the one
+   * placeholder left in this list — it has never been supplied, and it is set to
+   * IST here only so it stops contradicting a Pune address.
+   */
   contactDetails: [
-    { icon: 'Mail', label: 'Email', value: 'hello@kailo.com' },
-    { icon: 'Phone', label: 'Phone', value: '+1 (800) KAILO-01' },
-    { icon: 'MapPin', label: 'Address', value: '123 Music Lane, Nashville, TN' },
-    { icon: 'Clock', label: 'Hours', value: 'Mon–Fri 9AM–6PM EST' },
+    { icon: 'Mail', label: 'Email', value: 'abhinavsharma@kailostore.in' },
+    { icon: 'Phone', label: 'Phone', value: '(+91) 814 902 7675' },
+    { icon: 'MapPin', label: 'Address', value: 'Pune (MH)' },
+    { icon: 'Clock', label: 'Hours', value: 'Mon–Sat, 10AM–7PM IST' },
   ],
-  formSubjects: ['General Inquiry', 'Order Support', 'Wholesale', 'Press'],
+  /**
+   * Must stay in sync with the `SUBJECTS` allowlist in the contact-submission
+   * controller and the matching tuple in the frontend's `contact.tsx` — an option
+   * offered here but missing there is selectable and unsubmittable.
+   */
+  formSubjects: [
+    'Product Enquiry',
+    'Custom Order',
+    'Wholesale Enquiry',
+    'Collaboration',
+    'Order Support',
+    'General Enquiry',
+  ],
 
   workshopImageAsset: 'lifestyle-artisan',
-  workshopLabel: 'Find us',
-  workshopLocation: 'Nashville, TN',
-  workshopDirectionsUrl: 'https://maps.google.com/?q=Nashville,TN',
-  mapEmbedUrl: 'https://www.google.com/maps?q=Nashville,TN&output=embed',
+  workshopLabel: 'Visit us',
+  workshopLocation: 'Pune, Maharashtra',
+  workshopDirectionsUrl: 'https://maps.google.com/?q=Pune,Maharashtra,India',
+  mapEmbedUrl: 'https://www.google.com/maps?q=Pune,Maharashtra,India&output=embed',
 
   faqEyebrow: 'Good to know',
   faqHeading: 'Frequently asked',
   faqs: [
     {
-      question: "What's your return policy?",
-      answer: '30-day no-questions-asked returns on unused products.',
+      question: 'How quickly will I receive a response?',
+      answer:
+        'Within one business day. The workshop is open Mon–Sat, 10AM–7PM IST, and messages sent outside those hours are answered on the next working day.',
+    },
+    {
+      question: 'Can I request a custom guitar or ukulele strap?',
+      answer:
+        'Yes. Choose Custom Order in the form above and tell us the instrument, the length you need and the leather you have in mind — we will come back with what is possible and what it costs.',
+    },
+    {
+      question: 'Do you accept wholesale enquiries?',
+      answer:
+        'Yes. Pick Wholesale Enquiry in the form, or write to abhinavsharma@kailostore.in for our trade catalogue.',
     },
     {
       question: 'Do you ship internationally?',
       answer: 'Yes — we ship to 40+ countries in 3-7 business days.',
     },
     {
-      question: 'Are products covered by warranty?',
-      answer: 'Every Kailo product carries a 2-year manufacturing warranty.',
-    },
-    {
-      question: 'Do you offer wholesale pricing?',
-      answer: 'Yes. Email wholesale@kailo.com for our trade catalogue.',
-    },
-    {
-      question: 'Can I track my order?',
+      question: 'How can I track my order?',
       answer: "You'll receive a tracking link by email as soon as it ships.",
     },
   ],
 
+  /**
+   * One button, and it points back up the page rather than opening a mail client:
+   * every channel is already on this page, so the close should return the reader
+   * to the form instead of listing the address a third time. The secondary button
+   * is nulled for the same reason.
+   */
   cta: {
-    heading: 'Prefer to talk it through?',
-    body: 'Our team is around Monday to Friday, 9AM–6PM EST. Call us or drop an email — a real person will always reply.',
-    buttonLabel: 'hello@kailo.com',
-    buttonHref: 'mailto:hello@kailo.com',
-    secondaryButtonLabel: 'Call us',
-    secondaryButtonHref: 'tel:+18005245601',
+    heading: 'Your next favourite accessory starts with a conversation.',
+    body: 'Tell us what you play and what you need — we will take it from there.',
+    buttonLabel: 'Start a conversation',
+    buttonHref: '#contact-form',
+    secondaryButtonLabel: null,
+    secondaryButtonHref: null,
   },
 };

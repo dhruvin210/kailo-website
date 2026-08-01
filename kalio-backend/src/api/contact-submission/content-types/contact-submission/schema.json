@@ -21,9 +21,13 @@
       "type": "email",
       "required": true
     },
+    "phone": {
+      "type": "string",
+      "description": "Optional. The form offers it but never requires it — a visitor who only wants email back leaves it empty."
+    },
     "subject": {
       "type": "string",
-      "description": "One of General Inquiry / Order Support / Wholesale / Press (the frontend select)."
+      "description": "One of the enquiry types the form offers; see SUBJECTS in the controller, which is the allowlist. Anything else is stored as General Enquiry. Older rows may carry the retired Inquiry/Press wording."
     },
     "message": {
       "type": "text",

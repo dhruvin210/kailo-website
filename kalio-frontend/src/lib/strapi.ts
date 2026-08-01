@@ -343,6 +343,8 @@ export const HONEYPOT_FIELD = "company";
 export type ContactSubmission = {
   name: string;
   email: string;
+  /** Optional — the form offers it and never requires it. */
+  phone?: string;
   subject: string;
   message: string;
   /**
@@ -363,6 +365,27 @@ export const submitContactForm = ({ company, ...values }: ContactSubmission) =>
     ...values,
     [HONEYPOT_FIELD]: company ?? "",
   });
+
+/**
+ * A `wa.me` deep link, or `null` when there is no number to send anyone to.
+ *
+ * `VITE_WHATSAPP_NUMBER` is the configured number — international, digits only,
+ * per `.env.example`. When it is unset the published phone number is used
+ * instead, since it is the same business line and the alternative is a WhatsApp
+ * button that goes nowhere. Set the variable when WhatsApp lives somewhere else.
+ *
+ * Returns null rather than a `#` so callers can drop the option entirely; a dead
+ * chat button is worse than no chat button.
+ */
+export const whatsappUrl = (fallbackPhone?: string | null, text?: string): string | null => {
+  const configured = import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined;
+
+  // wa.me takes bare digits: no +, no spaces, no brackets.
+  const digits = (configured?.trim() || fallbackPhone || "").replace(/\D/g, "");
+  if (digits.length < 8) return null;
+
+  return `https://wa.me/${digits}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
+};
 
 /*
  * The CMS also exposes `POST /api/newsletter-subscriptions` (same honeypot and
