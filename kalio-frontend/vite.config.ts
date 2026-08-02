@@ -4,6 +4,39 @@ import tsConfigPaths from "vite-tsconfig-paths";
 import viteReact from "@vitejs/plugin-react";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
+/**
+ * Response headers applied to every document, plus the caching rule the
+ * generated Vercel config does not write on its own.
+ *
+ * Nitro's Vercel preset emits an `immutable` cache rule for `/assets/*` (the
+ * build's own hashed output) and nothing at all for `/uploads/*` — which in
+ * static-snapshot mode is where every image on the site lives, ~80 MB of it.
+ * Those file names carry Strapi's content hash (`hero1_c7087b304a.webp`), so a
+ * changed image is a changed URL and a year of `immutable` is safe.
+ *
+ * The security headers are the non-breaking set. A Content-Security-Policy is
+ * deliberately NOT here: TanStack Start inlines its hydration script, so a
+ * useful policy needs per-response nonces rather than a static header, and a
+ * wrong one takes the site down rather than degrading. Add it as a deliberate
+ * piece of work, not as a default.
+ *
+ * `Strict-Transport-Security` omits `includeSubDomains` on purpose — the CMS is
+ * expected to live on a subdomain, and forcing HTTPS on it from here would break
+ * it before its certificate exists.
+ */
+const SECURITY_HEADERS = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "SAMEORIGIN",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+  "Strict-Transport-Security": "max-age=31536000",
+} as const;
+
+const routeRules = {
+  "/**": { headers: { ...SECURITY_HEADERS } },
+  "/uploads/**": { headers: { "cache-control": "public, max-age=31536000, immutable" } },
+};
+
 // Deploy target: Vercel. Nitro builds the Vercel Build Output API layout under
 // `.vercel/output` (which Vercel auto-detects). The preset can be overridden at
 // build time via NITRO_PRESET.
@@ -30,6 +63,7 @@ export default defineConfig(async ({ command, mode }) => {
     plugins.push(
       nitro({
         preset: process.env.NITRO_PRESET ?? "vercel",
+        routeRules,
         output: {
           dir: ".vercel/output",
           serverDir: ".vercel/output/functions/__server.func",
