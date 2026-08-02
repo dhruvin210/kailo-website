@@ -260,6 +260,10 @@ are not readable over the API — admins read them in the panel. Anything the ta
 marks as disabled is actively **revoked** on boot, so a permission granted by hand
 in the admin does not silently persist.
 
+The one public write this table does *not* cover is
+`POST /api/auth/local/register`, which is not a Public-role permission at all —
+see [Accounts](#accounts). It is forced off on the same boot pass.
+
 For carts the guarantee is stronger than a revoked permission.
 [`src/api/cart/routes/cart.ts`](src/api/cart/routes/cart.ts) is a hand-written
 router, so `find` and `delete` **do not exist as routes at all** — there is no
@@ -428,7 +432,26 @@ transformation is the provider's job.
    up populated, then consider setting it to `false`.
 7. **Rate limiting** — move the in-process throttle to Redis or the CDN if you
    run more than one instance.
-8. **Build** — `npm run build && npm start`.
+8. **`NODE_ENV=production`** — set it in the host's environment. `npm start`
+   without it boots in `development`, which the startup banner will tell you.
+9. **Sign-ups** — nothing to do; `POST /api/auth/local/register` is forced off on
+   every boot (see [Accounts](#accounts) below). Set `USERS_ALLOW_REGISTER=true`
+   only once there is an auth phase for accounts to belong to.
+10. **Build** — `npm run build && npm start`.
+
+### Accounts
+
+`POST /api/auth/local/register` is **disabled**, reconciled on every boot by
+[`configureSignups`](src/seed/permissions.ts) alongside the Public-role table.
+
+It needs its own reconciliation because it is not a Public-role permission and
+not a config file value: the switch is `allow_register` inside the
+users-permissions plugin's advanced settings, a row in the core store that the
+plugin seeds to `true` on first boot. `register: { allowedFields: [] }` in
+`config/plugins.ts` does not close it — that only narrows which fields a sign-up
+may set, leaving the route open. Left at its default, anyone could mint confirmed
+accounts and JWTs on this instance, and `public-form-guard` would not throttle it:
+that middleware matches the two form paths and the cart prefix, not this one.
 
 ## Known gaps
 
