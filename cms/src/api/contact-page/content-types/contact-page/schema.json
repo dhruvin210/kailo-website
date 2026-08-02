@@ -1,0 +1,83 @@
+{
+  "kind": "singleType",
+  "collectionName": "contact_pages",
+  "info": {
+    "singularName": "contact-page",
+    "pluralName": "contact-pages",
+    "displayName": "Contact Page",
+    "description": "The /contact page. Mirrors frontend/src/routes/contact.tsx."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "seo": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.seo"
+    },
+
+    "heroEyebrow": {
+      "type": "string"
+    },
+    "heroHeading": {
+      "type": "string"
+    },
+    "heroSubtext": {
+      "type": "text"
+    },
+    "heroImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+
+    "contactDetails": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.contact-detail"
+    },
+    "formSubjects": {
+      "type": "json",
+      "description": "Options for the form's Subject select. Must stay in sync with the frontend zod enum."
+    },
+
+    "workshopImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "workshopLabel": {
+      "type": "string"
+    },
+    "workshopLocation": {
+      "type": "string"
+    },
+    "workshopDirectionsUrl": {
+      "type": "string"
+    },
+    "mapEmbedUrl": {
+      "type": "text",
+      "description": "Optional Google Maps embed src, for an <iframe> instead of the workshop photo."
+    },
+
+    "faqEyebrow": {
+      "type": "string"
+    },
+    "faqHeading": {
+      "type": "string"
+    },
+    "faqs": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.faq"
+    },
+
+    "cta": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.cta"
+    }
+  }
+}

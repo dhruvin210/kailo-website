@@ -1,0 +1,148 @@
+# Kailo CI — one job per package, because they are not the same shape.
+#
+# Named ci-cd.yml to match the house layout, but there is no CD half yet and the
+# name should not imply one: the storefront deploys through Vercel's own git
+# integration, which watches the repo directly and never runs from here, and the
+# CMS has no host to deploy to. Add the deploy jobs to this file when it does.
+#
+# Both run: npm ci → type-check → audit → production build. Two deliberate
+# asymmetries, both explained at the step that carries them:
+#
+#   • only the frontend runs ESLint — cms has no ESLint setup at all
+#     (no config file, no lint script), so there is nothing to run;
+#   • the audit gates are set at different severities, because the two packages
+#     are in genuinely different states. See the audit steps.
+#
+# Neither build needs secrets or a database: `vite build` falls back to the
+# committed CMS snapshot when VITE_STRAPI_URL is unset, and `strapi build` only
+# compiles TypeScript and the admin panel. Both were verified building from a
+# clean checkout with no .env present.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# A second push to the same branch makes the first run irrelevant.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Matches cms/.nvmrc and the engines field there. Keeping both
+          # packages on one major avoids a lockfile resolved under a Node the
+          # other half of the repo never runs.
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # Node 22 bundles npm 10.9.x, and this step is load-bearing: npm 10 rejects
+      # a lockfile written by npm 11 that omits @emnapi/core and @emnapi/runtime,
+      # with `EUSAGE ... Missing: @emnapi/core from lock file`. The first CI run
+      # failed exactly there. package-lock.json is now generated with npm 10 and
+      # installs cleanly under both 10 and 11.
+      #
+      # If you regenerate the lockfile with npm 11 (`npm install`, `npm audit
+      # fix`), re-run it once with `npx npm@10 install` before committing —
+      # otherwise this step and the Vercel build both break, since Vercel picks
+      # npm from the same Node major.
+      - name: Install
+        run: npm ci
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      # --max-warnings=0 would fail today: cart.tsx carries one known
+      # react-refresh/only-export-components warning, which is a dev-server HMR
+      # hint and not a defect. Errors block; that warning does not.
+      - name: Lint
+        run: npx eslint .
+
+      # Blocking, and it should stay blocking: this package is at zero
+      # vulnerabilities of any severity as of the D1 fix, so anything reaching
+      # `high` here is new and actionable rather than inherited.
+      - name: Audit
+        run: npm audit --audit-level=high
+
+      - name: Build
+        run: npm run build
+
+  backend:
+    name: cms
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cms
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: cms/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # Must run before the type-check, and this is the step the first CI run
+      # tripped over. `types/generated/` holds Strapi's per-schema
+      # contentTypes.d.ts and components.d.ts, and it is gitignored — so it
+      # exists on any machine that has ever run `strapi build` or `develop`, and
+      # never on a fresh checkout. Without it `tsc --noEmit` fails with four
+      # errors in cart.ts and seed/index.ts that appear nowhere locally.
+      #
+      # `ts:generate-types` reads the schema.json files only: no database, no
+      # secrets, ~1s. Verified to reproduce the committed types byte for byte.
+      - name: Generate Strapi types
+        run: npx strapi ts:generate-types
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      # No ESLint step: cms has no ESLint config and no lint script.
+      # Adding one is worth doing; inventing a config here in CI is not.
+
+      # Gated at `critical`, not `high`, and that is the whole point of this step.
+      #
+      # This package carries 33 transitive vulnerabilities from @strapi/strapi
+      # 5.51.0 — 4 high, 24 moderate, 5 low — and they have no forward fix today:
+      # `npm audit fix` proposes @strapi/strapi 5.36.0, a *downgrade* of fifteen
+      # minor versions. Gating at `high` would paint this pipeline permanently red
+      # and train everyone to ignore it, which is worse than not checking.
+      #
+      # Critical is currently zero, so this gate is meaningful right now: it fails
+      # on a genuinely new critical while staying quiet about the inherited set.
+      # Re-gate to `high` once a Strapi patch release clears them — see
+      # docs/backup-recovery.md, "Dependency posture".
+      - name: Audit (blocking — critical only)
+        run: npm audit --audit-level=critical
+
+      # The inherited set, kept visible rather than hidden. Non-blocking on
+      # purpose; read it to notice the count moving, not to gate the merge.
+      - name: Audit report (non-blocking — known Strapi transitives)
+        if: always()
+        continue-on-error: true
+        run: npm audit --audit-level=high
+
+      - name: Build
+        run: npm run build

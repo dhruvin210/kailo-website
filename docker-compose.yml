@@ -1,0 +1,91 @@
+# Kailo — local stack.
+#
+#   docker compose up -d          Postgres + the CMS
+#   docker compose up -d db       Postgres only, then `npm run develop` in cms/
+#   docker compose logs -f cms    follow the CMS
+#   docker compose down           stop (data survives)
+#   docker compose down -v        stop and wipe the database *and* the uploads
+#
+# The storefront is deliberately not a service here. It deploys to Vercel from
+# `.vercel/output` via the Build Output API and needs no container; its Dockerfile
+# was deleted in 4287546 rather than left to rot. Run it with `npm run dev` in
+# frontend/. See README, "Repository layout".
+#
+# Two env files, each with exactly one owner:
+#
+#   .env      (this folder)  the database credentials. The `db` container is
+#                            *created* with them and the `cms` container
+#                            *connects* with them, so the two cannot drift.
+#   cms/.env                 Strapi's own secrets and tuning. Required — copy it
+#                            from cms/.env.example before the first `up`, or
+#                            compose stops with "env file not found".
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kailo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-kailo}
+      POSTGRES_USER: ${DATABASE_USERNAME:-kailo}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-change_me}
+    ports:
+      # Host 5432 is often taken by a native Postgres install. Override with
+      # DATABASE_PORT in .env if this clashes — it moves the host side only.
+      - '${DATABASE_PORT:-5432}:5432'
+    volumes:
+      - kailo-pgdata:/var/lib/postgresql/data
+      # Runs once, and only while the data directory is still empty. Re-running
+      # it needs `down -v`; editing these files against a live volume does
+      # nothing at all.
+      - ./infrastructure/db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USERNAME:-kailo} -d ${DATABASE_NAME:-kailo}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  cms:
+    build:
+      context: ./cms
+    container_name: kailo-cms
+    restart: unless-stopped
+    depends_on:
+      db:
+        # Strapi opens its connection pool during bootstrap and gives up if the
+        # first connect fails, so waiting for "container started" is not enough.
+        condition: service_healthy
+    env_file:
+      - ./cms/.env
+    # `environment` wins over `env_file`, which is the whole point: cms/.env is
+    # written for running Strapi on the host, and these are the values that have
+    # to differ once it runs inside the compose network.
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 1337
+      # Whatever the host mapping is, in here the database is always db:5432.
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME:-kailo}
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-kailo}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-change_me}
+      DATABASE_SSL: 'false'
+      # The first-boot seed reads the original images once, from the storefront's
+      # source assets. They are not in this image — hence the mount below.
+      KAILO_ASSETS_DIR: /seed-assets
+    ports:
+      - '${CMS_PORT:-1337}:1337'
+    volumes:
+      # The local upload provider writes to the container filesystem. Without
+      # this the Media Library empties on every rebuild, taking every image on
+      # the site with it.
+      - kailo-uploads:/app/public/uploads
+      # Read-only, and read exactly once at seed time — the running server never
+      # touches this folder.
+      - ./frontend/src/assets:/seed-assets:ro
+
+volumes:
+  kailo-pgdata:
+  kailo-uploads:

@@ -1,6 +1,6 @@
 # Build Prompt — Phase 2: Media Pipeline & Deploy-Ready Uploads
 
-Run from the repo root (the folder containing `kalio-frontend/` and `kalio-backend/`).
+Run from the repo root (the folder containing `frontend/` and `cms/`).
 Phase 1 (wiring the frontend to Strapi) is complete; this phase makes the images
 it now serves fast, and the upload layer deployable.
 
@@ -28,7 +28,7 @@ Two goals, in this order:
    total homepage media under 1 MB, with no visible quality loss.
 2. **Make uploads deployable** — local disk is the default provider, so on any
    ephemeral or serverless host the files vanish on redeploy and every image 404s.
-   Selecting a provider must become env-only, as `kalio-backend/README.md` already
+   Selecting a provider must become env-only, as `cms/README.md` already
    promises but the code does not deliver.
 
 **Do not change the visual design.** Same crops, same focal points, same layout,
@@ -39,26 +39,26 @@ afterwards, something is wrong.
 
 ## 0. GROUND TRUTH
 
-- `mediaUrl(media, format?)` in `kalio-frontend/src/lib/strapi.ts` already selects a
+- `mediaUrl(media, format?)` in `frontend/src/lib/strapi.ts` already selects a
   derivative with graceful fallback (`large → medium → small → thumbnail → original`).
   Almost nothing uses the argument yet — only the About team portraits pass `"small"`.
 - Strapi 5 returns `formats` as `{ large, medium, small, thumbnail }`, each with its
   own `url`, `width`, `height`. Small uploads only have the sizes above their
   threshold, so **every consumer must tolerate a missing format** — that is what
   `mediaUrl`'s fallback chain is for.
-- Breakpoints are configured in `kalio-backend/config/plugins.ts`:
+- Breakpoints are configured in `cms/config/plugins.ts`:
   `large: 1000, medium: 750, small: 500`.
-- `sharp` 0.34.5 resolves inside `kalio-backend` (Strapi's upload plugin depends on it).
+- `sharp` 0.34.5 resolves inside `cms` (Strapi's upload plugin depends on it).
 - Content relations reference **file IDs**, not URLs. Rewriting a file's row in the
   `files` table therefore preserves every relation and every edit made in the admin.
 - The admin has hand-edited content (e.g. `guitar-case` is priced ₹10,059, not the
   seed's ₹17,999). **Nothing in this phase may re-seed or overwrite content.**
-- CSP in `kalio-backend/config/middlewares.ts` restricts `img-src`/`media-src` to
+- CSP in `cms/config/middlewares.ts` restricts `img-src`/`media-src` to
   `'self'` plus `market-assets.strapi.io`.
 
 ---
 
-## 1. ENV-DRIVEN UPLOAD PROVIDER (`kalio-backend`)
+## 1. ENV-DRIVEN UPLOAD PROVIDER (`cms`)
 
 `config/plugins.ts` hardcodes the local provider. Make the choice env-driven:
 
@@ -82,7 +82,7 @@ they describe the env-only swap that now actually exists.
 
 ---
 
-## 2. WEBP MIGRATION SCRIPT (`kalio-backend`)
+## 2. WEBP MIGRATION SCRIPT (`cms`)
 
 Add `npm run media:optimize` — a standalone script that converts the existing media
 library to WebP **without touching content**.
@@ -108,7 +108,7 @@ Requirements:
 
 ---
 
-## 3. RESPONSIVE IMAGES (`kalio-frontend`)
+## 3. RESPONSIVE IMAGES (`frontend`)
 
 Add `mediaSrcSet(media)` to `src/lib/strapi.ts`: build a `srcSet` string from
 whichever formats exist, each with its real pixel width descriptor, plus the

@@ -68,4 +68,4 @@ Every prompt shares one **style spine** so the whole site looks like a single ph
 - Keep the **style spine identical** across all prompts — that's what makes them look like one brand.
 - Add `--seed 1234` in Midjourney to keep lighting/background consistent between products.
 - Export products at **1200px wide, 4:3** to match the current `w=1200` Unsplash sizing in `src/lib/products.ts`.
-- Save results into `kalio-frontend/src/assets/` and swap the `img(...)` URLs for local imports.
+- Save results into `frontend/src/assets/` and swap the `img(...)` URLs for local imports.
