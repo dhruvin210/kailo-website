@@ -108,6 +108,8 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
+            aria-label="Search products"
+            aria-expanded={searchOpen}
             className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${iconBtn}`}
           >
             <Search className="h-5 w-5" />
@@ -147,12 +149,18 @@ export function Navbar() {
           {/* Wishlist */}
           <Link
             to="/wishlist"
+            // The count badge is decorative to a screen reader — it reads as a bare
+            // number next to an unnamed link — so the label carries it instead.
+            aria-label={wishlistCount > 0 ? `Wishlist, ${wishlistCount} items` : "Wishlist"}
             className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${iconBtn}`}
           >
             <Heart className="h-5 w-5" />
 
             {wishlistCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+              <span
+                aria-hidden="true"
+                className="absolute -right-0.5 -top-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white"
+              >
                 {wishlistCount}
               </span>
             )}
@@ -161,12 +169,16 @@ export function Navbar() {
           {/* Cart */}
           <Link
             to="/cart"
+            aria-label={count > 0 ? `Cart, ${count} items` : "Cart"}
             className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${iconBtn}`}
           >
             <ShoppingBag className="h-5 w-5" />
 
             {count > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              <span
+                aria-hidden="true"
+                className="absolute -right-0.5 -top-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground"
+              >
                 {count}
               </span>
             )}
@@ -176,6 +188,8 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
             className={`inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors md:hidden ${iconBtn}`}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
