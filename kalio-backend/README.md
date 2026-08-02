@@ -437,7 +437,12 @@ transformation is the provider's job.
 9. **Sign-ups** — nothing to do; `POST /api/auth/local/register` is forced off on
    every boot (see [Accounts](#accounts) below). Set `USERS_ALLOW_REGISTER=true`
    only once there is an auth phase for accounts to belong to.
-10. **Build** — `npm run build && npm start`.
+10. **Backups** — set up the nightly dump and prove a restore before go-live, not
+    after. Runbook: [`docs/backup-recovery.md`](../docs/backup-recovery.md).
+11. **Build** — `npm run build && npm start`.
+
+Backup, restore, rollback and the dependency-upgrade posture all live in
+[`docs/backup-recovery.md`](../docs/backup-recovery.md).
 
 ### Accounts
 
