@@ -7,6 +7,9 @@
  * and contact forms (`create` only) plus the cart's three token-scoped routes.
  * Nothing grants the Public role `find` on submissions or on carts, so form
  * captures are not readable over the API; admins read them in the panel.
+ *
+ * `configureSignups` below closes the one public write this file does not own —
+ * see its comment.
  */
 import type { Core } from '@strapi/strapi';
 
@@ -107,4 +110,40 @@ export const configurePublicRole = async (strapi: Core.Strapi): Promise<void> =>
   } else {
     strapi.log.debug('[permissions] Public role already correct');
   }
+};
+
+/**
+ * Public self-registration — `POST /api/auth/local/register` — forced off.
+ *
+ * This is not a Public-role permission, which is why it is not in the table
+ * above and why `register: { allowedFields: [] }` in `config/plugins.ts` does
+ * not cover it: `allowedFields` only narrows *which* fields a sign-up may set,
+ * and the route stays open regardless. The actual switch is `allow_register` in
+ * the users-permissions plugin's advanced settings, which lives in the core
+ * store — a database row, seeded to `true` by the plugin on first boot and
+ * otherwise only reachable through Settings → Users & Permissions → Advanced
+ * Settings. Left alone, anyone on the internet can mint confirmed accounts and
+ * JWTs on this instance, unthrottled: `public-form-guard` matches the two form
+ * paths and the cart prefix, not this one.
+ *
+ * The site has no auth phase — /login and /account are "coming soon" pages — so
+ * there is nothing for an account to be for. Reconciled on every boot, in code,
+ * for the same reason the permission table is: so the answer does not depend on
+ * who clicked what.
+ *
+ * Set `USERS_ALLOW_REGISTER=true` when the auth phase actually lands.
+ */
+export const configureSignups = async (strapi: Core.Strapi): Promise<void> => {
+  const allowRegister = process.env.USERS_ALLOW_REGISTER === 'true';
+
+  const store = strapi.store({ type: 'plugin', name: 'users-permissions', key: 'advanced' });
+  const advanced = ((await store.get()) ?? {}) as Record<string, unknown>;
+
+  if (advanced.allow_register === allowRegister) return;
+
+  await store.set({ value: { ...advanced, allow_register: allowRegister } });
+
+  strapi.log.info(
+    `[permissions] public sign-ups ${allowRegister ? 'ENABLED (USERS_ALLOW_REGISTER=true)' : 'disabled'}`
+  );
 };

@@ -1,7 +1,7 @@
 import type { Core } from '@strapi/strapi';
 
 import { runSeedOnce } from './seed';
-import { configurePublicRole } from './seed/permissions';
+import { configurePublicRole, configureSignups } from './seed/permissions';
 
 export default {
   /**
@@ -14,12 +14,15 @@ export default {
    *
    *  • Public-role permissions are reconciled every time, so the API surface
    *    is defined in code rather than in whoever-clicked-what.
+   *  • Public sign-ups are forced off for the same reason — the switch lives in
+   *    the database, not in config/plugins.ts. See `configureSignups`.
    *  • Content is seeded only when the database has never been seeded at this
    *    SEED_VERSION. Set SEED_ON_BOOT=false to opt out and drive it manually
    *    with `npm run seed`.
    */
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     await configurePublicRole(strapi);
+    await configureSignups(strapi);
 
     try {
       await runSeedOnce(strapi);
