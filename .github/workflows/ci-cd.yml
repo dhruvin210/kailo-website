@@ -1,9 +1,10 @@
 # Kailo CI — one job per package, because they are not the same shape.
 #
 # Named ci-cd.yml to match the house layout, but there is no CD half yet and the
-# name should not imply one: the storefront deploys through Vercel's own git
-# integration, which watches the repo directly and never runs from here, and the
-# CMS has no host to deploy to. Add the deploy jobs to this file when it does.
+# name should not imply one: both halves build container images and neither has a
+# host or a registry to push them to. Add the deploy jobs to this file when they
+# do — the images are what would be published, so they belong here rather than in
+# a provider's own pipeline.
 #
 # Both run: npm ci → type-check → audit → production build. Two deliberate
 # asymmetries, both explained at the step that carries them:
@@ -62,8 +63,8 @@ jobs:
       #
       # If you regenerate the lockfile with npm 11 (`npm install`, `npm audit
       # fix`), re-run it once with `npx npm@10 install` before committing —
-      # otherwise this step and the Vercel build both break, since Vercel picks
-      # npm from the same Node major.
+      # otherwise this step and the `npm ci` in frontend/Dockerfile both break,
+      # since the image is on the same Node major and gets the same npm.
       - name: Install
         run: npm ci
 

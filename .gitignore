@@ -20,9 +20,6 @@ dist-ssr
 .wrangler/
 .dev.vars
 
-# Vercel
-.vercel
-
 # Secrets. The root .env carries the database credentials docker-compose.yml
 # creates the `db` container with — see .env.example. Each package ignores its
 # own .env separately, in its own .gitignore.

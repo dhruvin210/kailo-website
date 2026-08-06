@@ -1,15 +1,15 @@
-# Kailo — local stack.
+# Kailo — the whole stack.
 #
-#   docker compose up -d          Postgres + the CMS
-#   docker compose up -d db       Postgres only, then `npm run develop` in cms/
-#   docker compose logs -f cms    follow the CMS
-#   docker compose down           stop (data survives)
-#   docker compose down -v        stop and wipe the database *and* the uploads
+#   docker compose up -d               Postgres + the CMS + the storefront
+#   docker compose up -d db            Postgres only, then `npm run develop` in cms/
+#   docker compose logs -f cms         follow the CMS
+#   docker compose down                stop (data survives)
+#   docker compose down -v             stop and wipe the database *and* the uploads
 #
-# The storefront is deliberately not a service here. It deploys to Vercel from
-# `.vercel/output` via the Build Output API and needs no container; its Dockerfile
-# was deleted in 4287546 rather than left to rot. Run it with `npm run dev` in
-# frontend/. See README, "Repository layout".
+# For day-to-day storefront work you still want `npm run dev` in frontend/ — the
+# `frontend` service here builds a production image and has no autoreload, so
+# every change costs a rebuild. It exists so that what you run locally is the
+# same artefact that gets deployed.
 #
 # Two env files, each with exactly one owner:
 #
@@ -19,6 +19,10 @@
 #   cms/.env                 Strapi's own secrets and tuning. Required — copy it
 #                            from cms/.env.example before the first `up`, or
 #                            compose stops with "env file not found".
+#
+# frontend/.env is deliberately absent from this file. Its VITE_ vars are inlined
+# at build time, so they are build args, not container environment — see the
+# `frontend` service.
 
 services:
   db:
@@ -85,6 +89,56 @@ services:
       # Read-only, and read exactly once at seed time — the running server never
       # touches this folder.
       - ./frontend/src/assets:/seed-assets:ro
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Build-time, not runtime, and that distinction is the whole reason this
+        # is an `args` block rather than an `environment` one: vite.config.ts
+        # inlines every VITE_ var into the bundle, so setting this on the running
+        # container does nothing whatsoever.
+        #
+        # Empty is a real value, not a missing one — it selects snapshot mode,
+        # where the storefront serves the committed CMS copy and needs neither
+        # the `cms` service nor the database. That is the default here because it
+        # is the only mode that works with no further thought.
+        #
+        # Live mode is one rebuild away:
+        #
+        #   docker compose build --build-arg VITE_STRAPI_URL=https://cms.example.com frontend
+        #
+        # but the URL has to be reachable *identically* from two places — this
+        # container, which renders server-side, and the visitor's browser, which
+        # takes over after hydration. `http://localhost:1337` satisfies only the
+        # browser (inside the container localhost is this container), and
+        # `http://cms:1337` only the container. Use a hostname or LAN address that
+        # resolves from both; there is no compose-local value that does.
+        VITE_STRAPI_URL: ${VITE_STRAPI_URL:-}
+    container_name: kailo-frontend
+    restart: unless-stopped
+    # No `depends_on: cms` on purpose. In the default snapshot mode the
+    # storefront reads nothing over the network, and a dependency here would drag
+    # Postgres and Strapi up for a site that does not need either. Add one if you
+    # rebuild in live mode.
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 8080
+    ports:
+      - '${WEB_PORT:-8080}:8080'
+    # No volumes. The image is self-contained — the Nitro bundle, the hashed
+    # assets and the ~63 MB of snapshot media all ship inside it, and nothing the
+    # storefront writes needs to outlive the container.
+    healthcheck:
+      # node:22-alpine carries no curl or wget, and Node's own fetch is right
+      # there. `-e` exits non-zero on a rejected promise, which is what compose
+      # reads.
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:8080/').then(r => process.exit(r.ok ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 volumes:
   kailo-pgdata:

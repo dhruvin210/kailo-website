@@ -1,7 +1,7 @@
 # Backup, recovery and rollback
 
 Operational runbook for the Kailo CMS (`cms`, Strapi 5 on PostgreSQL)
-and the storefront (`frontend`, TanStack Start on Vercel).
+and the storefront (`frontend`, TanStack Start on Nitro, in a container).
 
 Everything here was written against PostgreSQL 17.10 and **the dump/restore
 cycle in [Restoring](#restoring) was executed end to end** — see
@@ -17,7 +17,7 @@ There are three pieces of durable state, and they fail differently.
 |---|---|---|
 | **Content + admin users + permissions** | PostgreSQL | `pg_dump` — [below](#the-database) |
 | **Uploaded media** | `public/uploads` on the local provider, or the bucket once S3/Cloudinary is on | [Uploaded media](#uploaded-media) |
-| **Code + the committed CMS snapshot** | git | git, plus a Vercel deployment history |
+| **Code + the committed CMS snapshot** | git | git, plus the tagged container images |
 
 The storefront itself holds nothing: in snapshot mode it is a pure function of
 the repo, so "restoring the frontend" means redeploying a commit.
@@ -200,18 +200,25 @@ those rows for you. Take a dump first.
 
 ## Rollback
 
-### Storefront (Vercel)
+### Storefront (container)
 
-Vercel keeps every previous deployment. **Rolling back is promoting an older one
-in the dashboard** — Deployments → the last known-good build → Promote to
-Production. No rebuild, no git surgery, seconds to take effect.
+The storefront holds no state, so a rollback is only ever "run the previous
+image". **Keep the tagged images — they are the rollback mechanism.** There is no
+dashboard to promote from since Vercel was removed; if the only artefact is
+`latest`, the fastest path back is a rebuild from the last good commit, which
+costs minutes rather than seconds.
 
-Prefer that to reverting commits under time pressure; revert the code afterwards,
-calmly, so the next deploy does not reintroduce the fault.
+```bash
+docker tag kailo-web:<good-sha> kailo-web:latest && docker compose up -d frontend
+```
+
+Revert the code afterwards, calmly, so the next build does not reintroduce the
+fault.
 
 Note the storefront pins nothing about the CMS at runtime *except* through
-`VITE_STRAPI_URL`, which is inlined at build time. Changing that variable needs a
-rebuild, not just a promote.
+`VITE_STRAPI_URL`, which is inlined at build time. Changing it means a rebuild —
+so an image is tied to one CMS origin, and rolling back to an image built against
+a different one silently moves the site's data source.
 
 ### CMS (Strapi)
 

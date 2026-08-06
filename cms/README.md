@@ -244,8 +244,8 @@ Origins come from env, so a deploy never needs a code change:
 
 - `FRONTEND_URL` — the primary origin (default `http://localhost:8080`, which is
   the port `frontend/vite.config.ts` pins the dev server to).
-- `FRONTEND_URLS` — comma-separated extras. Put the Vercel production and
-  preview URLs here.
+- `FRONTEND_URLS` — comma-separated extras. Put the production and staging
+  storefront URLs here.
 
 `localhost`/`127.0.0.1` on ports 8080, 3000 and 5173 are always allowed on top,
 so the dev server works regardless of how it is started.

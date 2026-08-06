@@ -7,8 +7,8 @@ ukuleles. Two applications in one repository:
 
 | | Package | Stack | Deploys to |
 |---|---|---|---|
-| **Storefront** | [`frontend/`](frontend/) | TanStack Start (React 19, Vite 7, Tailwind 4) rendered server-side via Nitro | Vercel |
-| **CMS** | [`cms/`](cms/) | Strapi 5 (TypeScript) | any Node 22 host + PostgreSQL |
+| **Storefront** | [`frontend/`](frontend/) | TanStack Start (React 19, Vite 7, Tailwind 4) rendered server-side via Nitro | Docker image, any container host |
+| **CMS** | [`cms/`](cms/) | Strapi 5 (TypeScript) | Docker image + PostgreSQL |
 
 There is no workspace tool. Each package has its own `package.json`,
 `package-lock.json` and `.env`; install and run them separately.
@@ -22,32 +22,39 @@ One folder per deployable, following the house structure:
 ```
 Kailo/
 ├── .github/workflows/ci-cd.yml   type-check → lint → audit → build, both packages
-├── docker-compose.yml            Postgres + the CMS, for local work
-├── .env.example                  compose's own vars — the database credentials
-├── frontend/                     the storefront   → Vercel
-├── cms/                          Strapi 5         → any Node 22 host
+├── docker-compose.yml            Postgres + the CMS + the storefront
+├── .env.example                  compose's own vars — credentials and host ports
+├── frontend/                     the storefront   → container (Dockerfile)
+├── cms/                          Strapi 5         → container (Dockerfile)
 ├── infrastructure/db/            SQL run once, against an empty Postgres volume
 └── docs/                         runbooks
 ```
 
-Two deliberate departures from that structure, both load-bearing:
+One deliberate departure from that structure, and it is load-bearing:
 
 - **There is no `backend/`.** Strapi *is* the backend — it serves the REST API
   the storefront reads, so a second service would have nothing to do. `cms/`
   carries the Dockerfile a backend folder otherwise would.
-- **There is no `frontend/Dockerfile`.** The storefront deploys to Vercel from
-  `.vercel/output` via the Build Output API, which needs no container at all.
-  The previous one was deleted in `4287546` for being dead and wrong rather than
-  kept as decoration. If a self-hosted image is ever wanted, build it against
-  the `NITRO_PRESET=node-server` output instead of resurrecting that file.
+
+Both halves are containers, and there is no PaaS in the picture. The storefront
+was on Vercel until it was removed: `frontend/vite.config.ts` now defaults to
+Nitro's `node-server` preset, which builds a self-contained server under
+`.output` that [`frontend/Dockerfile`](frontend/Dockerfile) runs. Nothing reads
+`.vercel/output` any more, and a stale one from an older checkout is safe to
+delete.
 
 Three `.env` files, each with exactly one owner and none overlapping:
 
 | | |
 |---|---|
-| `.env` | database credentials, read only by `docker-compose.yml` |
+| `.env` | database credentials and host ports, read only by `docker-compose.yml` |
 | `cms/.env` | Strapi's secrets, CORS, seeding, upload provider |
-| `frontend/.env` | the storefront's build-time `VITE_` vars |
+| `frontend/.env` | the storefront's build-time `VITE_` vars, for `npm run dev` and host builds |
+
+`frontend/.env` is *not* read by the container — `.dockerignore` keeps it out of
+the build context deliberately, since a workstation `VITE_STRAPI_URL` inlined
+into an image points at a host that does not exist inside it. The image takes
+that value from a build arg instead.
 
 ---
 
@@ -105,13 +112,21 @@ With no `.env`, this runs in snapshot mode and every page renders real content.
 Everything in containers, from the repo root:
 
 ```bash
-cp .env.example .env            # database credentials
+cp .env.example .env            # database credentials and host ports
 cp cms/.env.example cms/.env    # then fill in the six secrets
-docker compose up -d            # Postgres + the CMS on :1337/admin
+docker compose up -d            # Postgres, the CMS on :1337/admin, the site on :8080
 ```
 
 `cms/.env` must exist before the first `up` — compose reads it for the Strapi
 secrets and stops with *"env file not found"* without it.
+
+The `frontend` container is a production image with no autoreload, and it builds
+in **snapshot mode** by default, so the site on :8080 serves the committed CMS
+copy and does not talk to the `cms` container at all. That is the point: it runs
+with nothing configured. Pointing it at a live CMS is a rebuild, not a restart,
+and the URL has to resolve from both the container and the browser — the
+`frontend` service in [`docker-compose.yml`](docker-compose.yml) spells out why.
+While actually editing the storefront, use `npm run dev` instead.
 
 Or run Strapi on the host with autoreload, and containerise only the database —
 which is what you want while editing schemas:
@@ -150,12 +165,21 @@ one-liner, is in the [CMS README](cms/README.md#quick-start).
 | | |
 |---|---|
 | `npm run dev` | dev server on :8080 |
-| `npm run build` | production build to `.vercel/output` |
+| `npm run build` | production build to `.output` (Nitro `node-server`) |
 | `npm run lint` / `npm run format` | ESLint / Prettier |
 | `node scripts/snapshot-cms.mjs` | regenerate the CMS snapshot |
 
-`npm run preview` exists but is unreliable here — use `npm run dev` to smoke-test
-SSR, or build with `NITRO_PRESET=node-server` and run the output directly.
+To smoke-test the real SSR output — the same bundle the image runs — build and
+start it directly:
+
+```bash
+npm run build
+node .output/server/index.mjs      # :3000, or set PORT
+```
+
+Note that `npm run build` inlines whatever `VITE_STRAPI_URL` your local `.env`
+carries. If that points at a CMS you are not running, every content route
+renders the error page; move the `.env` aside to check snapshot mode.
 
 **`cms`**
 
@@ -231,10 +255,10 @@ Two asymmetries, both intentional and commented in the workflow:
 
 **1. Regenerate the frontend lockfile with npm 10, not 11.**
 
-Node 22 bundles npm 10.9.x, and that is what CI *and Vercel* use. npm 11 prunes
-two optional peer deps (`@emnapi/core`, `@emnapi/runtime`) that npm 10 requires,
-producing a lockfile npm 10 rejects outright. If you run `npm install` or
-`npm audit fix` with npm 11 in `frontend`:
+Node 22 bundles npm 10.9.x, and that is what CI *and the Docker build* use. npm
+11 prunes two optional peer deps (`@emnapi/core`, `@emnapi/runtime`) that npm 10
+requires, producing a lockfile npm 10 rejects outright. If you run `npm install`
+or `npm audit fix` with npm 11 in `frontend`:
 
 ```bash
 npx npm@10 install     # before committing
@@ -251,13 +275,28 @@ same if `tsc` fails on a fresh checkout.
 
 ## Deploying
 
-**Storefront → Vercel.** Build `npm ci && npm run build`; output `.vercel/output`
-is auto-detected. Node 22. Set `VITE_STRAPI_URL` only when moving off snapshot
-mode — and remember it needs a rebuild.
+Both halves ship as container images, built by the Dockerfile in their own
+folder. There is no PaaS and nothing auto-deploys — `docker compose up -d
+--build` is the same operation locally and on a host.
 
-**CMS → any Node 22 host.** `npm ci && npm run build && npm start`, with
-`NODE_ENV=production` set in the host environment (without it Strapi boots in
-development mode, which the startup banner will tell you).
+**Storefront → any container host.** [`frontend/Dockerfile`](frontend/Dockerfile)
+builds Nitro's `node-server` output and runs `node .output/server/index.mjs` on
+:8080 as a non-root user. The runtime image carries no `node_modules` — Nitro
+bundles its dependencies.
+
+Set the CMS origin **at build time**, because vite inlines it:
+
+```bash
+docker build --build-arg VITE_STRAPI_URL=https://cms.example.com -t kailo-web ./frontend
+```
+
+Omit it for snapshot mode. Never pass `http://localhost:1337` — inside the
+container that is the container.
+
+**CMS → any container host + PostgreSQL.** [`cms/Dockerfile`](cms/Dockerfile)
+builds and runs Strapi with `NODE_ENV=production` already set. Uploads go to a
+named volume on the local provider; move them to S3/Cloudinary before running on
+an ephemeral filesystem.
 
 Before the first real deploy, work through
 [**Going to production**](cms/README.md#going-to-production) — it

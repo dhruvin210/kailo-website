@@ -1,7 +1,7 @@
 /**
  * CORS origins come from env so a deploy never needs a code change:
  *
- *   FRONTEND_URL       primary origin (Vercel production URL in prod)
+ *   FRONTEND_URL       primary origin (the storefront's public URL in prod)
  *   FRONTEND_URLS      optional comma-separated list of extra origins
  *
  * The defaults cover the TanStack Start dev server, which `frontend`

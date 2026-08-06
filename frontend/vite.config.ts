@@ -5,14 +5,16 @@ import viteReact from "@vitejs/plugin-react";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
 /**
- * Response headers applied to every document, plus the caching rule the
- * generated Vercel config does not write on its own.
+ * Response headers applied to every document, plus the caching rules Nitro's
+ * static file server does not write on its own.
  *
- * Nitro's Vercel preset emits an `immutable` cache rule for `/assets/*` (the
- * build's own hashed output) and nothing at all for `/uploads/*` — which in
- * static-snapshot mode is where every image on the site lives, ~80 MB of it.
- * Those file names carry Strapi's content hash (`hero1_c7087b304a.webp`), so a
- * changed image is a changed URL and a year of `immutable` is safe.
+ * Both asset rules are explicit here because the `node-server` preset serves
+ * `.output/public` itself and applies no caching policy of its own — unlike the
+ * CDN presets, which infer one. `/assets/**` is the build's own hashed output;
+ * `/uploads/**` is where every image on the site lives in static-snapshot mode,
+ * ~80 MB of it. Both carry a content hash in the file name
+ * (`hero1_c7087b304a.webp`), so a changed image is a changed URL and a year of
+ * `immutable` is safe.
  *
  * The security headers are the non-breaking set. A Content-Security-Policy is
  * deliberately NOT here: TanStack Start inlines its hydration script, so a
@@ -32,14 +34,24 @@ const SECURITY_HEADERS = {
   "Strict-Transport-Security": "max-age=31536000",
 } as const;
 
+const IMMUTABLE = { "cache-control": "public, max-age=31536000, immutable" };
+
 const routeRules = {
   "/**": { headers: { ...SECURITY_HEADERS } },
-  "/uploads/**": { headers: { "cache-control": "public, max-age=31536000, immutable" } },
+  "/assets/**": { headers: { ...IMMUTABLE } },
+  "/uploads/**": { headers: { ...IMMUTABLE } },
 };
 
-// Deploy target: Vercel. Nitro builds the Vercel Build Output API layout under
-// `.vercel/output` (which Vercel auto-detects). The preset can be overridden at
-// build time via NITRO_PRESET.
+// Deploy target: a container. Nitro's `node-server` preset builds a
+// self-contained Node server under `.output` — `.output/server/index.mjs` is the
+// entrypoint and `.output/public` the static root — which is what
+// frontend/Dockerfile runs. Its dependencies are bundled, so the runtime image
+// carries no node_modules.
+//
+// The output paths are Nitro's defaults and are deliberately not overridden:
+// pinning them is what tied the previous build to one host. Another preset can
+// still be selected at build time with NITRO_PRESET, and will lay out `.output`
+// however that target expects.
 export default defineConfig(async ({ command, mode }) => {
   const plugins = [
     tailwindcss(),
@@ -62,13 +74,8 @@ export default defineConfig(async ({ command, mode }) => {
     const { nitro } = await import("nitro/vite");
     plugins.push(
       nitro({
-        preset: process.env.NITRO_PRESET ?? "vercel",
+        preset: process.env.NITRO_PRESET ?? "node-server",
         routeRules,
-        output: {
-          dir: ".vercel/output",
-          serverDir: ".vercel/output/functions/__server.func",
-          publicDir: ".vercel/output/static",
-        },
       }),
     );
   }

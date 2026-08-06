@@ -6,9 +6,9 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  // Build output. `.vercel` holds the Nitro/Vercel bundle (see vite.config.ts) —
+  // Build output. `.output` holds the Nitro bundle (see vite.config.ts) —
   // linting those generated bundles is what made a bare `eslint .` appear to hang.
-  { ignores: ["dist", ".output", ".vinxi", ".vercel", ".nitro", "src/routeTree.gen.ts"] },
+  { ignores: ["dist", ".output", ".vinxi", ".nitro", "src/routeTree.gen.ts"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
